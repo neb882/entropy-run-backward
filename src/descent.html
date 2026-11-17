@@ -1,0 +1,95 @@
+<!-- ================= 06 THE DESCENT ================= -->
+<div class="wrap">
+<section class="sec dsc-intro" id="heat-death">
+  <div class="eq"><span class="n">06</span><span class="f">t → ∞</span></div>
+  <h2>The descent.</h2>
+  <div class="prose">
+    <p>Everything so far has been mechanism. This is where it leads. Below this line, scrolling moves time forward, and the ruler on the right is logarithmic: each mark is ten times later than the one before. The picture is our own neighbourhood of the universe.</p>
+    <p>It takes a while. Most of it is dark. That is the accurate proportion, and even so it is compressed: at the pace of the first screens, the whole descent would run more than four times as long.</p>
+  </div>
+  <div class="controls dsc-start">
+    <button type="button" class="primary dsc-auto" id="dscAuto">Descend for me</button>
+    <a href="#after" class="dsc-skip">Skip to the end</a>
+  </div>
+  <p class="note dsc-note">Assumes dark energy stays constant, the standard model of cosmology today. Captions marked by a choice depend on physics nobody has measured yet.</p>
+</section>
+</div>
+
+<div class="dsc" id="dscTrack">
+  <div class="dsc-stage" id="dscStage">
+    <canvas id="dscSky" role="img" aria-label="Our galaxy's neighbourhood, seen from outside, at the time shown on the clock"></canvas>
+    <div class="dsc-hud">
+      <div class="dsc-top" id="dscTop">
+        <div class="dsc-clockbox" id="dscClockbox">
+          <div class="dsc-clock" id="dscClock">13.8 billion years</div>
+          <div class="dsc-sub"><span id="dscEra">Stelliferous era</span><span id="dscRatio" class="dsc-ratio">&nbsp;</span></div>
+        </div>
+        <div class="dsc-side" id="dscSide">
+          <div class="dsc-ros">
+            <div class="dsc-ro"><div class="dsc-l">Sky temperature</div><div class="dsc-v" id="dscTemp">2.73 K</div></div>
+            <div class="dsc-ro"><div class="dsc-l">Space stretched</div><div class="dsc-v" id="dscStretch">×1</div></div>
+          </div>
+          <div class="dsc-inv">
+            <div class="dsc-inv-h"><span id="dscInvHead">Still possible · 8 of 8</span><span class="dsc-pips" id="dscPips" aria-hidden="true"></span></div>
+            <ul class="dsc-inv-list" id="dscInvList"></ul>
+            <div class="dsc-lost" id="dscLost">Lost: nothing yet</div>
+          </div>
+          <div class="dsc-ctl">
+            <button type="button" class="dsc-auto dsc-auto-hud" id="dscAuto2">Descend for me</button>
+            <div class="dsc-proton" id="dscProton">
+              <span class="ctl-label" id="dscProtonLab">Unknown physics</span>
+              <span class="seg" role="group" aria-labelledby="dscProtonLab"><button type="button" id="dscDecay" aria-pressed="true">Protons decay</button><button type="button" id="dscLast" aria-pressed="false">Protons last</button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dsc-rail" id="dscRail" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="dsc-cards" id="dscCards">
+    <div class="dsc-card" data-u="10.14"><div class="dsc-when">Now · 13.8 billion years</div><p>Hundreds of billions of stars in this galaxy, and hundreds of billions of other galaxies in view. This is about as bright as it gets.</p></div>
+    <div class="dsc-card" data-u="10.18"><div class="dsc-when">In about a billion years</div><p>The Sun, slowly brightening, has boiled away Earth's oceans.</p></div>
+    <div class="dsc-card" data-u="10.33"><div class="dsc-when">In about 8 billion years</div><p>The Sun has swollen into a red giant, shed its outer layers, and shrunk to a white dwarf the size of Earth.</p></div>
+    <div class="dsc-card" data-u="10.55"><div class="dsc-when">Tens of billions of years</div><p>The Milky Way and Andromeda have roughly even odds of merging within ten billion years. Given longer, the galaxies of our Local Group are expected to settle into one.</p></div>
+    <div class="dsc-card" data-u="11.1"><div class="dsc-when">About 100 billion years</div><p>The accelerating expansion has carried every other galaxy out of sight. An astronomer born now would see one island of stars in an empty, apparently static universe, with no evidence left that there was ever a Big Bang.</p></div>
+    <div class="dsc-card" data-u="12.1"><div class="dsc-when">About a trillion years</div><p>The afterglow of the Big Bang has been stretched until it is colder than the faint glow of the cosmic horizon itself. The gas that makes new stars is running out.</p></div>
+    <div class="dsc-card" data-u="12.6"><div class="dsc-when">A few trillion years</div><p>Sun-like stars are long gone. The light now comes from red dwarfs, small stars that burn so slowly they last for trillions of years.</p></div>
+    <div class="dsc-card" data-u="13.3"><div class="dsc-when">Tens of trillions of years</div><p>The red dwarfs are going out, one at a time.</p></div>
+    <div class="dsc-card" data-u="14.0"><div class="dsc-when">About 100 trillion years</div><p>The last star goes out.</p></div>
+    <div class="dsc-card" data-u="14.5"><div class="dsc-when">10<sup>14.5</sup> years</div><p>What remains of the galaxy: brown dwarfs, cooling white dwarfs, neutron stars and black holes. Now and then two brown dwarfs collide and light one small star. About a hundred shine at a time, where there were once hundreds of billions.</p></div>
+    <div class="dsc-card" data-u="15.2"><div class="dsc-when">10<sup>15</sup> years</div><p>Close passes between dead stars have pulled nearly every planet from its orbit. The white dwarfs have cooled into black dwarfs, too cold to see.</p></div>
+    <div class="dsc-card dsc-voice" data-u="17.0"><p>You are now a thousand times farther from the last star than the last star was from the Big Bang.</p></div>
+    <div class="dsc-card" data-u="19.5"><div class="dsc-when">10<sup>19</sup> to 10<sup>20</sup> years</div><p>The galaxy evaporates. Chance encounters fling most of the dead stars out into intergalactic space. The rest sink toward the black hole at the centre.</p></div>
+    <div class="dsc-card" data-u="21.0"><div class="dsc-when">10<sup>21</sup> years</div><p>Each ejected remnant drifts off beyond every other one's horizon. From here on, almost everything that happens, happens alone.</p></div>
+    <div class="dsc-card dsc-voice" data-u="24.0"><p>The pace has changed. Each screen now covers four factors of ten. The whole age of starlight is one ten-billionth of the time elapsed.</p></div>
+    <div class="dsc-card" data-u="30.0"><div class="dsc-when">10<sup>30</sup> years</div><p>The last of the dead stars that stayed have spiralled into the central black hole. It is the only thing left here.</p></div>
+    <div class="dsc-card" data-u="34.0"><div class="dsc-when">10<sup>34</sup> years</div><p>Here knowledge forks. Experiments have watched for a decaying proton for decades and never seen one, which means protons last longer than about 10<sup>34</sup> years if they decay at all. Many theories say they do. Choose a branch with the switch marked Unknown physics.</p></div>
+    <div class="dsc-card dsc-branch" data-u="37.0" data-branch="d"><div class="dsc-when">10<sup>37</sup> years</div><p>If protons decay, dead stars shine again, faintly. A white dwarf lit by its own dissolving protons gives off about 400 watts, a few light bulbs' worth.</p></div>
+    <div class="dsc-card dsc-branch" data-u="37.0" data-branch="l" hidden><div class="dsc-when">10<sup>37</sup> years</div><p>If protons last, nothing happens to the dead stars. Black dwarfs drift on in the dark, cold spheres of carbon and oxygen, each alone inside its own horizon.</p></div>
+    <div class="dsc-card dsc-branch" data-u="39.5" data-branch="d"><div class="dsc-when">10<sup>40</sup> years</div><p>Ordinary matter is gone. Every atom that ever existed has dissolved into radiation and lighter particles. Atoms turn out to have been a phase.</p></div>
+    <div class="dsc-card dsc-branch" data-u="39.5" data-branch="l" hidden><div class="dsc-when">10<sup>40</sup> years</div><p>Matter is still out there, and will be for a very long time. It no longer does anything.</p></div>
+    <div class="dsc-card" data-u="41.0"><div class="dsc-when">10<sup>41</sup> years</div><p>The black hole era. Black holes are the last large reservoirs of anything, and they leak. Each one loses mass as faint radiation, slower the bigger it is.</p></div>
+    <div class="dsc-card dsc-voice" data-u="46.0"><p>Each factor of ten lasts nine times longer than all the time before it put together.</p></div>
+    <div class="dsc-card dsc-voice" data-u="59.0"><p>Halfway down the ruler. In years, everything above this line adds up to 10<sup>−41</sup> of the way to the last black holes.</p></div>
+    <div class="dsc-card dsc-voice" data-u="62.0"><p>No event is known for this stretch.</p></div>
+    <div class="dsc-card" data-u="68.0"><div class="dsc-when">10<sup>67</sup> to 10<sup>70</sup> years</div><p>Somewhere beyond the horizon, the black holes left by dead stars are finishing. Each ends in a flash: its last second releases the energy of about five million megatons of TNT as gamma rays. No light from any of them will ever arrive here.</p></div>
+    <div class="dsc-card dsc-voice" data-u="78.0"><p>Still the same black hole. Still leaking.</p></div>
+    <div class="dsc-card" data-u="87.0"><div class="dsc-when">10<sup>87</sup> years</div><p>A black hole with the mass of the one at our galaxy's centre today, four million Suns, would evaporate about now. Ours has swallowed far more than that, so it lasts longer.</p></div>
+    <div class="dsc-card" data-u="93.9"><div class="dsc-when">Perhaps 10<sup>93</sup> years</div><p>The black hole that was the centre of our galaxy shrinks, heats, and goes. For a moment it is hotter than any star ever was.</p></div>
+    <div class="dsc-card dsc-voice" data-u="96.0"><p>As far as anyone knows, that was the last thing that will ever happen here.</p></div>
+    <div class="dsc-card" data-u="100.0"><div class="dsc-when">10<sup>100</sup> years</div><p>Far beyond the horizon, the largest black holes of all, tens of billions of Suns, are evaporating. After them, no difference in temperature worth the name is left anywhere.</p></div>
+    <div class="dsc-card" data-u="102.0"><div class="dsc-when">The dark era</div><p>A thin scatter of photons, neutrinos, electrons and positrons in an exponentially growing void, all at the temperature of the horizon: about <span style="white-space:nowrap">2 × 10<sup>−30</sup> kelvin</span>. The energy is all still here. None of it can do anything.</p></div>
+    <div class="dsc-card dsc-voice" data-u="106.0"><p>The picture has not failed to load. This is what there is to show.</p></div>
+  </div>
+</div>
+
+<div class="wrap">
+<section class="sec dsc-outro">
+  <div class="prose">
+    <p>That is heat death. It is the box of gas from the first experiment at the size of the universe, with every joule still present, everything at one temperature, and nothing left to happen.</p>
+    <p>Scroll back up and the stars return, because this page is a recording. The universe is the box B from the second experiment. It keeps no copy precise enough to rewind.</p>
+  </div>
+  <div class="scaled"><div class="tag">Scaled down</div><p>You are reading this at the very top of the ruler, in the brief interval when stars burn, matter holds together, and one thing can still be hotter than another.</p></div>
+</section>
+</div>

@@ -172,6 +172,214 @@ footer a { color: var(--dim); }
 .you .hot { color: var(--ember); }
 @media (max-width: 520px) { .you { left: 8px; right: 8px; bottom: 8px; max-width: none; font-size: 11px; padding: 6px 10px; } .you .long { display: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* ---------- 05 ledger ---------- */
+#ledger .led-plot { --lw: 250px; --vw: 112px; --g: 16px; padding: 14px 18px 12px; }
+.led-cap { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); line-height: 1.4; margin: 0 0 12px; }
+.led-rows { position: relative; }
+.led-grid { position: absolute; top: 0; bottom: 0; left: calc(var(--lw) + var(--g)); right: calc(var(--vw) + var(--g)); pointer-events: none; }
+.led-grid i { position: absolute; top: 0; bottom: 0; width: 1px; margin-left: -0.5px; background: var(--line); }
+.led-row { position: relative; z-index: 1; display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) var(--vw); column-gap: var(--g); align-items: center; }
+.led-lab { grid-column: 1; grid-row: 1; font-size: 16px; line-height: 1.25; padding: 4px 0; }
+.led-track { grid-column: 2; grid-row: 1; position: relative; height: 30px; }
+.led-val { grid-column: 3; grid-row: 1; text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.led-axis { z-index: 0; }
+.led-axis .led-track { height: 18px; font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
+.led-axis .led-track span { position: absolute; top: 2px; transform: translateX(-50%); white-space: nowrap; }
+.led-axis:first-of-type { margin-bottom: 2px; }
+.led-leader { position: absolute; left: 0; top: 50%; height: 1px; background: var(--dim); opacity: 0.6; }
+.led-dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--bone); }
+.led-bh .led-dot, .led-tot .led-dot { background: var(--ember); }
+.led-bh .led-leader, .led-tot .led-leader { background: var(--ember); opacity: 0.55; }
+.led-tot { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+.led-tot .led-dot { width: 14px; height: 14px; margin: -7px 0 0 -7px; }
+.led-tot .led-lab, .led-ceil .led-lab, .led-tot .led-val, .led-ceil .led-val { font-weight: 500; }
+.led-tot .led-val { color: var(--ember); }
+.led-ceil .led-dot { background: var(--ice); width: 12px; height: 12px; margin: -6px 0 0 -6px; }
+.led-ceil .led-leader { background: var(--ice); opacity: 0.5; }
+.led-ceil .led-val { color: var(--ice); }
+.led-gap .led-lab, .led-gap .led-val { visibility: hidden; }
+.led-gap .led-track { height: 64px; }
+.led-band { position: absolute; top: 0; bottom: 0; background: rgba(169, 200, 255, 0.07); border-left: 1px dashed var(--ice); border-right: 1px dashed var(--ice); display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 6px; }
+.led-band span { font-family: var(--mono); font-size: 11.5px; line-height: 1.4; color: var(--ice); letter-spacing: 0.02em; }
+@media (max-width: 700px) {
+  #ledger .led-plot { padding: 12px 12px 10px; }
+  .led-grid { left: 0; right: 0; }
+  .led-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .led-lab { grid-column: 1; grid-row: 1; padding: 6px 0 0; }
+  .led-val { grid-column: 2; grid-row: 1; align-self: baseline; }
+  .led-lab { align-self: baseline; }
+  .led-track { grid-column: 1 / -1; grid-row: 2; height: 20px; }
+  .led-axis .led-track { grid-row: 1; height: 18px; }
+  .led-gap .led-lab, .led-gap .led-val { display: none; }
+  .led-gap .led-track { grid-row: 1; height: 56px; }
+  .led-tot { padding-top: 2px; }
+}
+
+/* black hole bookkeeping */
+.led-h3 { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bone); margin: 0; }
+.led-controls { gap: 14px 20px; margin-top: 16px; align-items: center; }
+.led-presets { display: flex; flex-wrap: wrap; border: 0; padding: 0 1px 1px 0; }
+.led-presets button, .led-presets button:last-child { border: 1px solid var(--line); margin: 0 -1px -1px 0; position: relative; min-height: 40px; padding: 8px 14px; }
+.led-presets button:hover, .led-presets button[aria-pressed="true"] { z-index: 1; }
+.led-slider { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0; }
+.led-slider .ctl-label { margin: 0; }
+#ledMass { flex: 1; min-width: 0; height: 40px; }
+#ledMass::-webkit-slider-runnable-track { background: var(--dim); }
+#ledMass::-moz-range-track { background: var(--dim); }
+.led-ro { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.led-ro .ro { grid-column: span 2; }
+.led-ro .ro:nth-child(n+4) { grid-column: span 3; }
+.led-ro .v { font-size: 19px; overflow-wrap: anywhere; }
+.led-sub { font-family: var(--mono); font-size: 12px; line-height: 1.45; color: var(--dim); margin-top: 4px; }
+@media (max-width: 700px) {
+  .led-ro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .led-ro .ro, .led-ro .ro:nth-child(n+4) { grid-column: span 1; }
+  .led-ro .ro:last-child { grid-column: 1 / -1; }
+}
+.led-presets button[aria-pressed="true"]:hover { background: var(--ember); }
+
+/* ---------- 06 descent ---------- */
+.dsc-start { margin-top: 26px; }
+.dsc-skip { font-family: var(--mono); font-size: 13px; padding: 11px 4px; }
+.dsc-note { margin: 22px 0 0; }
+
+.dsc {
+  /* gutters shared by HUD and captions: the page's .wrap text edge */
+  --dsc-gl: max(24px, calc((100% - 1140px) / 2 + 24px));
+  --dsc-gr: max(96px, calc((100% - 1140px) / 2 + 24px));
+  --dsc-sw: 244px;
+  --dsc-h: 100vh;
+  position: relative;
+  height: calc(var(--dsc-h) * 27.8);
+  background: #050609;
+}
+.dsc-stage { position: sticky; top: 0; height: var(--dsc-h); overflow: hidden; background: #050609; }
+.dsc-stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.dsc-hud { position: absolute; inset: 0; pointer-events: none; color: var(--bone); }
+.dsc-hud button { pointer-events: auto; }
+
+/* clock */
+.dsc-top { display: contents; }
+.dsc-clockbox { position: absolute; top: 24px; left: var(--dsc-gl); }
+.dsc-clock {
+  font-family: var(--display); font-style: italic; font-weight: 300;
+  font-size: 50px; line-height: 1.08; letter-spacing: -0.012em; white-space: nowrap;
+  font-variation-settings: "opsz" 72; font-variant-numeric: lining-nums tabular-nums;
+}
+.dsc-sub { margin-top: 8px; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--dim); }
+.dsc-sub span { display: block; white-space: nowrap; }
+.dsc-sub sup { font-size: 0.75em; vertical-align: 0.5em; }
+
+/* right-hand column: readouts, inventory, controls */
+.dsc-side { position: absolute; top: 30px; right: var(--dsc-gr); width: var(--dsc-sw); }
+.dsc-ros { display: grid; gap: 12px; }
+.dsc-l, .dsc-inv-h { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); line-height: 1.4; }
+.dsc-v { font-family: var(--mono); font-size: 15px; line-height: 1.35; margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dsc-v small { font-size: 11px; color: var(--dim); }
+.dsc-v sup sup { font-size: 0.8em; }
+
+.dsc-inv { margin-top: 24px; }
+.dsc-inv-list { list-style: none; margin: 7px 0 0; padding: 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.8; }
+.dsc-inv-list li { display: flex; justify-content: space-between; gap: 12px; transition: color .4s; }
+.dsc-inv-list li > span:last-child { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dsc-inv-list li.dsc-gone { color: #5d606b; }
+.dsc-inv-list li.dsc-gone > span:first-child { text-decoration: line-through; text-decoration-color: #5d606b; text-decoration-thickness: 1px; }
+.dsc-inv-list li.dsc-gone > span:last-child { color: #4a4d57; }
+.dsc-pips { display: none; }
+.dsc-lost { display: none; }
+
+.dsc-ctl { margin-top: 22px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.dsc-proton { transition: opacity .5s; }
+.dsc-proton .ctl-label { display: block; margin: 0 0 6px; }
+.dsc-proton:not(.dsc-on) { visibility: hidden; opacity: 0; }
+.dsc-hud .seg button, .dsc-auto-hud { font-size: 12.5px; min-height: 40px; padding: 8px 11px; }
+.dsc-auto-hud { background: rgba(5, 6, 9, 0.6); }
+/* a quieter pressed state: over the dark stretches this should not be the brightest thing on screen */
+.dsc-hud .seg button[aria-pressed="true"] { background: rgba(255, 138, 74, 0.14); color: var(--ember); }
+.dsc-auto[hidden] { display: none; }
+
+/* depth rail: uniform in log time, 10^10 to 10^108 */
+.dsc-rail { position: absolute; right: 14px; top: 30px; bottom: 78px; width: 60px; font-family: var(--mono); color: var(--dim); }
+.dsc-rail i, .dsc-rail span { position: absolute; display: block; }
+.dsc-rl { right: 12px; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.dsc-rd { right: 12px; top: 0; height: 100%; width: 1px; background: linear-gradient(var(--ember), var(--dim)); transform-origin: top; transform: scaleY(0); }
+.dsc-rt { right: 13px; width: 5px; height: 1px; background: #4a4d57; }
+.dsc-re { right: 7px; width: 11px; height: 1px; background: var(--dim); }
+.dsc-rlab { right: 22px; transform: translateY(-50%); font-size: 10px; line-height: 1; white-space: nowrap; }
+.dsc-rlab sup { font-size: 0.78em; vertical-align: 0.45em; }
+.dsc-rs { right: 16px; width: 3px; border: 1px solid #5d606b; border-right: 0; }
+.dsc-rsl { right: 24px; font-size: 9.5px; line-height: 1; transform: translateY(-50%); color: var(--ember); letter-spacing: 0.04em; }
+.dsc-rm { right: 5px; top: -1px; width: 15px; height: 2px; background: var(--ember); will-change: transform; }
+
+/* captions */
+.dsc-cards { position: absolute; inset: 0; pointer-events: none; }
+.dsc-card {
+  position: absolute; top: 0; left: var(--dsc-gl);
+  width: min(29rem, calc(100% - var(--dsc-gl) - var(--dsc-gr) - var(--dsc-sw) - 40px));
+  background: rgba(7, 8, 12, 0.78); border-left: 1px solid var(--line);
+  padding: 14px 20px 17px 19px; pointer-events: auto;
+}
+.dsc-card[hidden] { display: none; }
+.dsc-when { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--ember); margin: 0 0 7px; line-height: 1.4; }
+.dsc-when sup { font-size: 0.78em; vertical-align: 0.5em; }
+.dsc-card p { margin: 0; font-size: 20px; line-height: 1.45; font-variation-settings: "opsz" 24; text-wrap: pretty; }
+.dsc-card.dsc-voice p { font-style: italic; }
+
+.dsc-outro { padding-top: 56px; }
+
+@media (max-width: 760px) {
+  .dsc-top { display: block; position: absolute; top: 12px; left: 16px; right: 16px; }
+  .dsc-clockbox, .dsc-side { position: static; width: auto; }
+  .dsc-clock { font-size: 31px; }
+  .dsc-sub { margin-top: 4px; font-size: 11px; line-height: 1.5; }
+  .dsc-side { margin-top: 12px; }
+  .dsc-ros { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dsc-l, .dsc-inv-h { font-size: 9.5px; }
+  .dsc-v { font-size: 12.5px; }
+  .dsc-v small { font-size: 10px; }
+  .dsc-inv { margin-top: 10px; }
+  .dsc-inv-h { display: flex; align-items: center; gap: 10px; }
+  .dsc-inv-list { display: none; }
+  .dsc-pips { display: inline-flex; gap: 4px; }
+  .dsc-pips i { display: block; width: 7px; height: 7px; border: 1px solid var(--bone); background: var(--bone); }
+  .dsc-pips i.dsc-gone { background: transparent; border-color: #4a4d57; }
+  .dsc-lost { display: block; font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--dim); margin-top: 3px; white-space: nowrap; }
+  .dsc-ctl { margin-top: 10px; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .dsc-proton { order: 2; }
+  .dsc-proton .ctl-label { font-size: 9.5px; margin-bottom: 4px; text-align: right; margin-right: 0; }
+  .dsc-auto-hud { order: 1; }
+  .dsc-hud .seg button, .dsc-auto-hud { font-size: 11.5px; padding: 8px 9px; }
+  .dsc-rail { right: 4px; width: 46px; bottom: 76px; }
+  .dsc-rl, .dsc-rd { right: 10px; }
+  .dsc-rt { right: 11px; }
+  .dsc-re { right: 5px; }
+  .dsc-rm { right: 3px; }
+  .dsc-rlab { right: 19px; font-size: 9.5px; }
+  .dsc-rlab.dsc-opt { display: none; }
+  .dsc-rs { right: 14px; }
+  .dsc-rsl { right: 21px; font-size: 9px; }
+  .dsc-card { left: 16px; width: auto; right: 58px; padding: 12px 14px 14px 15px; }
+  .dsc-when { font-size: 10.5px; margin-bottom: 5px; }
+  .dsc-card p { font-size: 18px; line-height: 1.42; }
+}
+@media (max-width: 760px) {
+  .dsc-hud button { white-space: nowrap; }
+}
+@media (max-width: 380px) {
+  .dsc-hud .seg button, .dsc-auto-hud { padding: 8px 7px; font-size: 11px; }
+}
+/* short phones: a tighter HUD leaves room for the captions */
+@media (max-width: 760px) and (max-height: 720px) {
+  .dsc-top { top: 8px; }
+  .dsc-clock { font-size: 27px; }
+  .dsc-sub { margin-top: 2px; line-height: 1.4; }
+  .dsc-side { margin-top: 8px; }
+  .dsc-ros .dsc-v { margin-top: 0; }
+  .dsc-inv { margin-top: 6px; }
+  .dsc-ctl { margin-top: 4px; }
+  .dsc-card p { font-size: 17px; line-height: 1.38; }
+}
+
 </style>
 </head>
 <body>
@@ -181,7 +389,7 @@ footer a { color: var(--dim); }
 <!-- ================= HERO / EXPERIMENT 1 ================= -->
 <header class="hero">
   <div>
-    <p class="kicker">Five experiments on the second law of thermodynamics</p>
+    <p class="kicker">The second law of thermodynamics, from a box of gas to the end of time</p>
     <h1 class="boltz" aria-label="S equals k log W">S<span class="op">=</span><span class="k">k</span> log W</h1>
     <p class="grave">Carved on Ludwig Boltzmann's grave in Vienna. S is entropy. W counts the microscopic arrangements that look identical from outside. The constant k converts that count into joules per kelvin. Boltzmann died in 1906, a few years before experiments settled that the atoms his formula counts are real.</p>
 
@@ -220,7 +428,7 @@ footer a { color: var(--dim); }
   <div class="ro"><div class="l">Work it could still do</div><div class="v" id="r-f">–</div><div class="gauge"><i id="g-f"></i></div></div>
   <div class="ro"><div class="l">Odds a random instant finds all 360 back in the corner</div><div class="v">1 in 10<sup>217</sup></div></div>
 </div>
-<p class="note" style="margin-top:14px">How the entropy is counted: the observer divides the box into cells and records only how many particles sit in each. W = N!/(n<sub>1</sub>! n<sub>2</sub>! …) is the number of ways to assign particles to cells that produces those counts. Change the resolution and the number changes, because entropy measures what a description leaves out. At 2×2 the starting state has exactly one arrangement and zero entropy. Velocities carry entropy too: every particle starts at the same speed, and the histogram relaxes to the Maxwell–Boltzmann curve. “Work it could still do” is the free energy above equilibrium, k·T·(S<sub>eq</sub> − S), in units of the gas's own kT.</p>
+<p class="note" style="margin-top:14px">How the entropy is counted: the observer divides the box into cells and records only how many particles sit in each. W = N!/(n<sub>1</sub>! n<sub>2</sub>! …) is the number of ways to assign particles to cells that produces those counts. Change the resolution and the number changes, because entropy measures what a description leaves out. At 2×2 the starting state has exactly one arrangement and zero entropy. Velocities carry entropy too: every particle starts at the same speed, and the histogram relaxes to the Maxwell–Boltzmann curve. “Work it could still do” is the free energy above equilibrium, k·T·(S<sub>eq</sub> − S), in units of the gas's own kT. The odds in the last tile are (¼)<sup>360</sup>. If the gas tried a fresh arrangement every second, you would wait about 10<sup>209</sup> years to see the corner refill by chance. Keep that number in mind for the end of this page.</p>
 
 <div class="scaled">
   <div class="tag">Scaled up</div>
@@ -333,46 +541,179 @@ footer a { color: var(--dim); }
   </div>
   <div class="scaled">
     <div class="tag">Scaled up</div>
-    <p>Stars are the universe's only large supply of low-entropy light. Star formation ends in roughly a hundred trillion years, when the gas runs out. The last red dwarfs fade after that, and the gap everything lives in closes.</p>
+    <p>Stars are the universe's only large supply of low-entropy light. Star formation winds down over the next one to a hundred trillion years as the gas runs out. The last red dwarfs fade by about a hundred trillion years, and the gap everything lives in closes.</p>
   </div>
 </section>
 
-<!-- ================= EXPERIMENT 5 ================= -->
-<section class="sec" id="heat-death">
-  <div class="eq"><span class="n">05</span><span class="f">10<sup>104</sup> k now · 10<sup>122</sup> k at most</span></div>
-  <h2>The heat death.</h2>
+<section class="sec" id="ledger">
+  <div class="eq"><span class="n">05</span><span class="f">S = k A / 4ℓ<sub>P</sub><sup>2</sup></span></div>
+  <h2>Where the entropy is.</h2>
   <div class="prose">
-    <p>The observable universe holds about 10<sup>104</sup> k of entropy today, most of it inside supermassive black holes. The most it could ever hold, set by the area of its cosmic horizon, is about 10<sup>122</sup> k. The gap is eighteen orders of magnitude. Nearly all of the running-down is still ahead. Drag the clock forward.</p>
+    <p>Add up the entropy of everything in the observable universe and the stars barely register. Nearly all of it sits in black holes.</p>
+    <p>Gravity turns the logic of the gas box inside out. A gas left alone spreads. Matter that pulls on itself clumps, and for gravity the clumped state is the one with more arrangements. A black hole is the limit: the most entropy that can fit in a region of space, proportional to the area of its horizon. Collapse the Sun into a black hole and its entropy rises about 10<sup>19</sup>-fold.</p>
   </div>
 
-  <div class="inst cosmos">
-    <div class="box">
-      <canvas id="cosCanvas" aria-label="Our galaxy's neighborhood from now until the last black holes evaporate"></canvas>
-      <div class="cosmos-overlay"><span class="era" id="cosEra">Stelliferous era</span><span id="cosTime">13.8 billion years</span></div>
+  <div class="inst">
+    <div class="box led-plot">
+      <div class="led-cap" id="ledCap">Entropy of the observable universe today, in units of k</div>
+      <div class="led-row led-axis" aria-hidden="true"><div class="led-track"><span style="left:4.348%">10<sup>80</sup></span><span style="left:26.087%">10<sup>90</sup></span><span style="left:47.826%">10<sup>100</sup></span><span style="left:69.565%">10<sup>110</sup></span><span style="left:91.304%">10<sup>120</sup></span></div></div>
+      <div class="led-rows" role="list" aria-labelledby="ledCap">
+        <div class="led-grid" aria-hidden="true"><i style="left:4.348%"></i><i style="left:26.087%"></i><i style="left:47.826%"></i><i style="left:69.565%"></i><i style="left:91.304%"></i></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Stars</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:6.478%"></i><i class="led-dot" style="left:6.478%"></i></div><div class="led-val">9.5 × 10<sup>80</sup></div></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Gas between the stars and galaxies</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:8.370%"></i><i class="led-dot" style="left:8.370%"></i></div><div class="led-val">7.1 × 10<sup>81</sup></div></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Relic gravitons (predicted)</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:21.283%"></i><i class="led-dot" style="left:21.283%"></i></div><div class="led-val">6.2 × 10<sup>87</sup></div></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Dark matter</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:22.391%"></i><i class="led-dot" style="left:22.391%"></i></div><div class="led-val">2 × 10<sup>88</sup></div></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Relic neutrinos</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:25.457%"></i><i class="led-dot" style="left:25.457%"></i></div><div class="led-val">5.2 × 10<sup>89</sup></div></div>
+        <div class="led-row" role="listitem"><div class="led-lab">Light: the Big Bang's afterglow</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:25.500%"></i><i class="led-dot" style="left:25.500%"></i></div><div class="led-val">5.4 × 10<sup>89</sup></div></div>
+        <div class="led-row led-bh" role="listitem"><div class="led-lab">Black holes left by stars</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:42.978%"></i><i class="led-dot" style="left:42.978%"></i></div><div class="led-val">5.9 × 10<sup>97</sup></div></div>
+        <div class="led-row led-bh" role="listitem"><div class="led-lab">Supermassive black holes</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:57.587%"></i><i class="led-dot" style="left:57.587%"></i></div><div class="led-val">3.1 × 10<sup>104</sup></div></div>
+        <div class="led-row led-tot" role="listitem"><div class="led-lab">Everything, today</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:57.587%"></i><i class="led-dot" style="left:57.587%"></i></div><div class="led-val">3.1 × 10<sup>104</sup></div></div>
+        <div class="led-row led-gap" role="listitem"><div class="led-track"><div class="led-band" style="left:57.587%;width:38.957%"><span>unused: 18 factors of ten</span></div></div></div>
+        <div class="led-row led-ceil" role="listitem"><div class="led-lab">The ceiling: the cosmic horizon</div><div class="led-track" aria-hidden="true"><i class="led-leader" style="width:96.543%"></i><i class="led-dot" style="left:96.543%"></i></div><div class="led-val">2.6 × 10<sup>122</sup></div></div>
+      </div>
+      <div class="led-row led-axis" aria-hidden="true"><div class="led-track"><span style="left:4.348%">10<sup>80</sup></span><span style="left:26.087%">10<sup>90</sup></span><span style="left:47.826%">10<sup>100</sup></span><span style="left:69.565%">10<sup>110</sup></span><span style="left:91.304%">10<sup>120</sup></span></div></div>
     </div>
-    <div class="slider-wrap">
-      <div class="bands" id="cosBands"></div>
-      <label for="cosSlider" class="sr">Time since the Big Bang</label>
-      <input type="range" id="cosSlider" min="0" max="1000" step="1" value="0">
-      <div class="ticks" id="cosTicks"></div>
-    </div>
-    <div class="controls">
-      <button id="cosPlay" class="primary" type="button">Play</button>
-      <button id="cosNow" type="button">Back to now</button>
-      <span class="note" style="font-size:13.5px">The clock is logarithmic and compressed after 10<sup>15</sup> years. On an even log scale, everything up to the last star would fill only the first 4% of the bar.</span>
-    </div>
-    <div class="readouts">
-      <div class="ro"><div class="l">Time since the Big Bang</div><div class="v" id="c-t">–</div></div>
-      <div class="ro"><div class="l">Temperature of the sky</div><div class="v" id="c-T">–</div></div>
-      <div class="ro"><div class="l">Space stretched since today</div><div class="v" id="c-a">–</div></div>
-      <div class="ro"><div class="l">Stars still shining, compared with today</div><div class="v" id="c-n">–</div></div>
-    </div>
-    <p class="event" id="cosEvent" aria-live="polite"></p>
+    <p class="note" style="margin:12px 0 0">Log scale: each gridline is ten billion times the one before. On a linear scale only the bottom row would be visible. Values from Egan &amp; Lineweaver (2010); dark matter and gravitons are model-dependent estimates.</p>
   </div>
 
   <div class="prose">
-    <p>Compress the span until the last black holes evaporate, about 10<sup>100</sup> years, into a single year. Everything that has happened so far, every star you have seen and everyone who has ever lived, would fit inside 10<sup>−82</sup> seconds. That is far shorter than a Planck time, the scale below which current physics stops making sense. We are at the very beginning.</p>
-    <p>Heat death is the box from the first experiment at the size of the universe, with all the energy still present, all of it at one temperature, and nothing left to happen. Possibly one thing remains. In a finite system that runs forever, fluctuations eventually recur, the way the entropy in that box sometimes dips. If the far future behaves like a finite thermal system, which is an open question, then over something like 10<sup>10<sup>122</sup></sup> years any arrangement at all could briefly re-form by chance. Whether heat death is an ending, or the start of an unimaginably long wait, is not settled.</p>
+    <p>The black hole at the centre of our own galaxy holds about 2 × 10<sup>90</sup> k. That is more than all the light left over from the Big Bang, across the entire observable universe.</p>
+    <p>The last row is the ceiling: the most entropy this region of the universe can ever hold, set by the area of its cosmic horizon. Today's total is about a billionth of a billionth of it. Measured by entropy, almost none of the universe's history has happened yet.</p>
+  </div>
+
+  <div class="inst led-calc">
+    <h3 class="led-h3">Black hole bookkeeping</h3>
+    <p class="note" style="margin:6px 0 0">Pick a mass. Everything else about a black hole follows from it.</p>
+    <div class="controls led-controls">
+      <div class="seg led-presets" id="ledPresets" role="group" aria-label="Preset masses">
+        <button type="button" data-p="0" aria-pressed="false">Earth</button><button type="button" data-p="1" aria-pressed="true">Sun</button><button type="button" data-p="2" aria-pressed="false">Sagittarius A*</button><button type="button" data-p="3" aria-pressed="false">M87*</button><button type="button" data-p="4" aria-pressed="false">TON 618</button>
+      </div>
+      <div class="led-slider"><label for="ledMass" class="ctl-label">Mass</label><input type="range" id="ledMass" min="-8" max="11.5" step="0.01" value="0"></div>
+    </div>
+    <div class="readouts led-ro" id="ledOut">
+      <div class="ro"><div class="l">Mass</div><div class="v" id="ledM"></div><div class="led-sub" id="ledMkg"></div></div>
+      <div class="ro"><div class="l">Width of the horizon</div><div class="v" id="ledW"></div></div>
+      <div class="ro"><div class="l">Entropy</div><div class="v" id="ledS"></div></div>
+      <div class="ro"><div class="l">Temperature</div><div class="v" id="ledT"></div><div class="led-sub" id="ledTsub"></div></div>
+      <div class="ro"><div class="l">Time to evaporate</div><div class="v" id="ledE"></div><div class="led-sub" id="ledEsub"></div></div>
+    </div>
+    <p class="note" style="margin:14px 0 0">Formulas: Bekenstein–Hawking entropy and Hawking's temperature and lifetime for a non-rotating black hole emitting only light. Real holes also swallow gas, stars and starlight, which delays things further.</p>
+  </div>
+
+  <div class="scaled"><div class="tag">Scaled up</div><p>Black holes are where the universe's entropy goes, and they are the last things in it to let go. The emptiest stretch of the descent below is spent waiting for them.</p></div>
+</section>
+
+
+</div><!-- /.wrap -->
+
+<!-- ================= 06 THE DESCENT ================= -->
+<div class="wrap">
+<section class="sec dsc-intro" id="heat-death">
+  <div class="eq"><span class="n">06</span><span class="f">t → ∞</span></div>
+  <h2>The descent.</h2>
+  <div class="prose">
+    <p>Everything so far has been mechanism. This is where it leads. Below this line, scrolling moves time forward, and the ruler on the right is logarithmic: each mark is ten times later than the one before. The picture is our own neighbourhood of the universe.</p>
+    <p>It takes a while. Most of it is dark. That is the accurate proportion, and even so it is compressed: at the pace of the first screens, the whole descent would run more than four times as long.</p>
+  </div>
+  <div class="controls dsc-start">
+    <button type="button" class="primary dsc-auto" id="dscAuto">Descend for me</button>
+    <a href="#after" class="dsc-skip">Skip to the end</a>
+  </div>
+  <p class="note dsc-note">Assumes dark energy stays constant, the standard model of cosmology today. Captions marked by a choice depend on physics nobody has measured yet.</p>
+</section>
+</div>
+
+<div class="dsc" id="dscTrack">
+  <div class="dsc-stage" id="dscStage">
+    <canvas id="dscSky" role="img" aria-label="Our galaxy's neighbourhood, seen from outside, at the time shown on the clock"></canvas>
+    <div class="dsc-hud">
+      <div class="dsc-top" id="dscTop">
+        <div class="dsc-clockbox" id="dscClockbox">
+          <div class="dsc-clock" id="dscClock">13.8 billion years</div>
+          <div class="dsc-sub"><span id="dscEra">Stelliferous era</span><span id="dscRatio" class="dsc-ratio">&nbsp;</span></div>
+        </div>
+        <div class="dsc-side" id="dscSide">
+          <div class="dsc-ros">
+            <div class="dsc-ro"><div class="dsc-l">Sky temperature</div><div class="dsc-v" id="dscTemp">2.73 K</div></div>
+            <div class="dsc-ro"><div class="dsc-l">Space stretched</div><div class="dsc-v" id="dscStretch">×1</div></div>
+          </div>
+          <div class="dsc-inv">
+            <div class="dsc-inv-h"><span id="dscInvHead">Still possible · 8 of 8</span><span class="dsc-pips" id="dscPips" aria-hidden="true"></span></div>
+            <ul class="dsc-inv-list" id="dscInvList"></ul>
+            <div class="dsc-lost" id="dscLost">Lost: nothing yet</div>
+          </div>
+          <div class="dsc-ctl">
+            <button type="button" class="dsc-auto dsc-auto-hud" id="dscAuto2">Descend for me</button>
+            <div class="dsc-proton" id="dscProton">
+              <span class="ctl-label" id="dscProtonLab">Unknown physics</span>
+              <span class="seg" role="group" aria-labelledby="dscProtonLab"><button type="button" id="dscDecay" aria-pressed="true">Protons decay</button><button type="button" id="dscLast" aria-pressed="false">Protons last</button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dsc-rail" id="dscRail" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="dsc-cards" id="dscCards">
+    <div class="dsc-card" data-u="10.14"><div class="dsc-when">Now · 13.8 billion years</div><p>Hundreds of billions of stars in this galaxy, and hundreds of billions of other galaxies in view. This is about as bright as it gets.</p></div>
+    <div class="dsc-card" data-u="10.18"><div class="dsc-when">In about a billion years</div><p>The Sun, slowly brightening, has boiled away Earth's oceans.</p></div>
+    <div class="dsc-card" data-u="10.33"><div class="dsc-when">In about 8 billion years</div><p>The Sun has swollen into a red giant, shed its outer layers, and shrunk to a white dwarf the size of Earth.</p></div>
+    <div class="dsc-card" data-u="10.55"><div class="dsc-when">Tens of billions of years</div><p>The Milky Way and Andromeda have roughly even odds of merging within ten billion years. Given longer, the galaxies of our Local Group are expected to settle into one.</p></div>
+    <div class="dsc-card" data-u="11.1"><div class="dsc-when">About 100 billion years</div><p>The accelerating expansion has carried every other galaxy out of sight. An astronomer born now would see one island of stars in an empty, apparently static universe, with no evidence left that there was ever a Big Bang.</p></div>
+    <div class="dsc-card" data-u="12.1"><div class="dsc-when">About a trillion years</div><p>The afterglow of the Big Bang has been stretched until it is colder than the faint glow of the cosmic horizon itself. The gas that makes new stars is running out.</p></div>
+    <div class="dsc-card" data-u="12.6"><div class="dsc-when">A few trillion years</div><p>Sun-like stars are long gone. The light now comes from red dwarfs, small stars that burn so slowly they last for trillions of years.</p></div>
+    <div class="dsc-card" data-u="13.3"><div class="dsc-when">Tens of trillions of years</div><p>The red dwarfs are going out, one at a time.</p></div>
+    <div class="dsc-card" data-u="14.0"><div class="dsc-when">About 100 trillion years</div><p>The last star goes out.</p></div>
+    <div class="dsc-card" data-u="14.5"><div class="dsc-when">10<sup>14.5</sup> years</div><p>What remains of the galaxy: brown dwarfs, cooling white dwarfs, neutron stars and black holes. Now and then two brown dwarfs collide and light one small star. About a hundred shine at a time, where there were once hundreds of billions.</p></div>
+    <div class="dsc-card" data-u="15.2"><div class="dsc-when">10<sup>15</sup> years</div><p>Close passes between dead stars have pulled nearly every planet from its orbit. The white dwarfs have cooled into black dwarfs, too cold to see.</p></div>
+    <div class="dsc-card dsc-voice" data-u="17.0"><p>You are now a thousand times farther from the last star than the last star was from the Big Bang.</p></div>
+    <div class="dsc-card" data-u="19.5"><div class="dsc-when">10<sup>19</sup> to 10<sup>20</sup> years</div><p>The galaxy evaporates. Chance encounters fling most of the dead stars out into intergalactic space. The rest sink toward the black hole at the centre.</p></div>
+    <div class="dsc-card" data-u="21.0"><div class="dsc-when">10<sup>21</sup> years</div><p>Each ejected remnant drifts off beyond every other one's horizon. From here on, almost everything that happens, happens alone.</p></div>
+    <div class="dsc-card dsc-voice" data-u="24.0"><p>The pace has changed. Each screen now covers four factors of ten. The whole age of starlight is one ten-billionth of the time elapsed.</p></div>
+    <div class="dsc-card" data-u="30.0"><div class="dsc-when">10<sup>30</sup> years</div><p>The last of the dead stars that stayed have spiralled into the central black hole. It is the only thing left here.</p></div>
+    <div class="dsc-card" data-u="34.0"><div class="dsc-when">10<sup>34</sup> years</div><p>Here knowledge forks. Experiments have watched for a decaying proton for decades and never seen one, which means protons last longer than about 10<sup>34</sup> years if they decay at all. Many theories say they do. Choose a branch with the switch marked Unknown physics.</p></div>
+    <div class="dsc-card dsc-branch" data-u="37.0" data-branch="d"><div class="dsc-when">10<sup>37</sup> years</div><p>If protons decay, dead stars shine again, faintly. A white dwarf lit by its own dissolving protons gives off about 400 watts, a few light bulbs' worth.</p></div>
+    <div class="dsc-card dsc-branch" data-u="37.0" data-branch="l" hidden><div class="dsc-when">10<sup>37</sup> years</div><p>If protons last, nothing happens to the dead stars. Black dwarfs drift on in the dark, cold spheres of carbon and oxygen, each alone inside its own horizon.</p></div>
+    <div class="dsc-card dsc-branch" data-u="39.5" data-branch="d"><div class="dsc-when">10<sup>40</sup> years</div><p>Ordinary matter is gone. Every atom that ever existed has dissolved into radiation and lighter particles. Atoms turn out to have been a phase.</p></div>
+    <div class="dsc-card dsc-branch" data-u="39.5" data-branch="l" hidden><div class="dsc-when">10<sup>40</sup> years</div><p>Matter is still out there, and will be for a very long time. It no longer does anything.</p></div>
+    <div class="dsc-card" data-u="41.0"><div class="dsc-when">10<sup>41</sup> years</div><p>The black hole era. Black holes are the last large reservoirs of anything, and they leak. Each one loses mass as faint radiation, slower the bigger it is.</p></div>
+    <div class="dsc-card dsc-voice" data-u="46.0"><p>Each factor of ten lasts nine times longer than all the time before it put together.</p></div>
+    <div class="dsc-card dsc-voice" data-u="59.0"><p>Halfway down the ruler. In years, everything above this line adds up to 10<sup>−41</sup> of the way to the last black holes.</p></div>
+    <div class="dsc-card dsc-voice" data-u="62.0"><p>No event is known for this stretch.</p></div>
+    <div class="dsc-card" data-u="68.0"><div class="dsc-when">10<sup>67</sup> to 10<sup>70</sup> years</div><p>Somewhere beyond the horizon, the black holes left by dead stars are finishing. Each ends in a flash: its last second releases the energy of about five million megatons of TNT as gamma rays. No light from any of them will ever arrive here.</p></div>
+    <div class="dsc-card dsc-voice" data-u="78.0"><p>Still the same black hole. Still leaking.</p></div>
+    <div class="dsc-card" data-u="87.0"><div class="dsc-when">10<sup>87</sup> years</div><p>A black hole with the mass of the one at our galaxy's centre today, four million Suns, would evaporate about now. Ours has swallowed far more than that, so it lasts longer.</p></div>
+    <div class="dsc-card" data-u="93.9"><div class="dsc-when">Perhaps 10<sup>93</sup> years</div><p>The black hole that was the centre of our galaxy shrinks, heats, and goes. For a moment it is hotter than any star ever was.</p></div>
+    <div class="dsc-card dsc-voice" data-u="96.0"><p>As far as anyone knows, that was the last thing that will ever happen here.</p></div>
+    <div class="dsc-card" data-u="100.0"><div class="dsc-when">10<sup>100</sup> years</div><p>Far beyond the horizon, the largest black holes of all, tens of billions of Suns, are evaporating. After them, no difference in temperature worth the name is left anywhere.</p></div>
+    <div class="dsc-card" data-u="102.0"><div class="dsc-when">The dark era</div><p>A thin scatter of photons, neutrinos, electrons and positrons in an exponentially growing void, all at the temperature of the horizon: about <span style="white-space:nowrap">2 × 10<sup>−30</sup> kelvin</span>. The energy is all still here. None of it can do anything.</p></div>
+    <div class="dsc-card dsc-voice" data-u="106.0"><p>The picture has not failed to load. This is what there is to show.</p></div>
+  </div>
+</div>
+
+<div class="wrap">
+<section class="sec dsc-outro">
+  <div class="prose">
+    <p>That is heat death. It is the box of gas from the first experiment at the size of the universe, with every joule still present, everything at one temperature, and nothing left to happen.</p>
+    <p>Scroll back up and the stars return, because this page is a recording. The universe is the box B from the second experiment. It keeps no copy precise enough to rewind.</p>
+  </div>
+  <div class="scaled"><div class="tag">Scaled down</div><p>You are reading this at the very top of the ruler, in the brief interval when stars burn, matter holds together, and one thing can still be hotter than another.</p></div>
+</section>
+</div>
+
+
+<div class="wrap">
+
+<!-- ================= AFTER ================= -->
+<section class="sec" id="after">
+  <div class="eq"><span class="n">07</span><span class="f">t<sub>return</sub> ~ e<sup>S</sup></span></div>
+  <h2>After the end.</h2>
+  <div class="prose">
+    <p>Heat death is a condition with no scheduled end, and three things about it are still open.</p>
+    <p>It may not be final. A finite system that runs forever eventually revisits its own past, the way the entropy in the first box sometimes dips. That box would need about 10<sup>209</sup> years to refill its corner by chance. If the far future behaves like a finite thermal system, the same arithmetic applies to everything: in roughly 10<sup>10<sup>50</sup></sup> years a single brain, complete with false memories, could assemble out of the vacuum, and in something like 10<sup>10<sup>122</sup></sup> years any arrangement at all could briefly recur. Other physicists argue that empty space settles into a perfectly still state in which no such fluctuation ever happens. Nobody knows which is right.</p>
+    <p>Matter may outlast the black holes. If protons never decay, the dead stars are still out there when the last black hole goes. Over about 10<sup>1500</sup> years, quantum tunnelling would slowly turn each one into a ball of iron, and over spans that need a second exponent to write, even those would collapse.</p>
+    <p>And dark energy may not hold steady. Every date in the descent assumes it stays constant, which is the standard model of cosmology. Since 2024, galaxy surveys have hinted that it may be weakening. If that holds up, the far end of this story changes.</p>
   </div>
 </section>
 
@@ -382,13 +723,14 @@ footer a { color: var(--dim); }
   <h2>Every arrow points away from one improbable fact.</h2>
   <div class="prose">
     <p>You remember yesterday and not tomorrow. Causes come before their effects. You age forward. Each of these is the second law at work, and each depends on entropy having been lower in the past. Follow that back and it ends at the Big Bang, which began in a state of astonishingly low entropy. Roger Penrose estimated the odds of a beginning that orderly, chosen at random, at about 1 in 10<sup>10<sup>123</sup></sup>.</p>
-    <p>No accepted theory explains it. Philosophers call the assumption the Past Hypothesis. Everything on this page rests on it, including the fact that you will remember reading this, and not the other way around.</p>
+    <p>No accepted theory explains it. Philosophers call the assumption the Past Hypothesis. The whole descent you just scrolled through is that one improbable beginning being spent. Everything on this page rests on it, including the fact that you will remember reading this, and not the other way around.</p>
   </div>
 </section>
 
 <footer>
   <p>Built after Daniel Temkin's <a href="https://entropy-lang.org/">Entropy</a> (2010), a programming language in which data decays as it is used. The gas uses bit-reversible molecular dynamics after Levesque &amp; Verlet (1993): soft disks, integer positions, forces rounded pair by pair so every step can be undone exactly.</p>
-  <p>Figures: entropy budget of the universe from Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras from Adams &amp; Laughlin, “A Dying Universe” (1997). Sky temperature and stretch assume flat ΛCDM with H<sub>0</sub> = 67.7 km/s/Mpc, Ω<sub>m</sub> = 0.31 and constant dark energy; the horizon temperature is the Gibbons–Hawking value, about 2 × 10<sup>−30</sup> K. Recurrence time after Dyson, Kleban &amp; Susskind (2002). Landauer (1961). Proton decay has never been observed; the timeline marks it as hypothetical.</p>
+  <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Iron stars: Dyson, “Time Without End” (1979). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
+  <p>Sky temperature and stretch assume flat ΛCDM with H<sub>0</sub> = 67.7 km/s/Mpc, Ω<sub>m</sub> = 0.31 and constant dark energy; the horizon temperature is the Gibbons–Hawking value, about 2 × 10<sup>−30</sup> K. Black hole figures are for non-rotating holes emitting only light. Proton decay has never been observed, and the lower limit on the proton's lifetime is about 10<sup>34</sup> years; the descent shows both branches. The lifetime of our galaxy's central black hole depends on how much it swallows first and is uncertain by several factors of ten.</p>
   <p>The star field is an illustrative sample with realistic proportions of red dwarfs, Sun-like stars and massive stars. The counter at the bottom of the screen assumes a resting metabolism of about 100 W released as heat into a 20 °C room.</p>
 </footer>
 
@@ -535,10 +877,15 @@ function drawParticles(ctx, gas, W, H, rPx, alpha = 1) {
   return v2;
 }
 
+/* shared API for the modules that load after this script */
+const frameHooks = [], resizeHooks = [];
+window.ENT = { $, C, MINUS, reduced, mulberry32, blackbody, fit, fmtInt, neg, sci, pow10html, onFrame: (f) => frameHooks.push(f), onResize: (f) => resizeHooks.push(f) };
+
 /* visibility: only animate what is on screen */
 const visible = new Map();
 const io = new IntersectionObserver((es) => es.forEach((e) => visible.set(e.target, e.isIntersecting)), { rootMargin: '80px' });
 function watch(el) { visible.set(el, true); io.observe(el); }
+window.ENT.watch = watch; window.ENT.isVisible = (el) => visible.get(el) !== false;
 
 /* ================= 1. HERO GAS ================= */
 const hero = (() => {
@@ -951,177 +1298,6 @@ const photons = (() => {
   return { tick, draw };
 })();
 
-/* ================= 5. COSMIC CLOCK ================= */
-const cosmos = (() => {
-  const cv = $('cosCanvas'), ctx = cv.getContext('2d'), slider = $('cosSlider');
-  const U0 = Math.log10(13.79e9);
-  const KS = [0, 0.32, 0.5, 0.62, 0.9, 1.0], KU = [U0, 15, 20, 40, 100, 110];
-  const s2u = (s) => { for (let i = 1; i < KS.length; i++) if (s <= KS[i]) return KU[i - 1] + ((s - KS[i - 1]) / (KS[i] - KS[i - 1])) * (KU[i] - KU[i - 1]); return KU[KU.length - 1]; };
-  const u2s = (u) => { for (let i = 1; i < KU.length; i++) if (u <= KU[i]) return KS[i - 1] + ((u - KU[i - 1]) / (KU[i] - KU[i - 1])) * (KS[i] - KS[i - 1]); return 1; };
-  // cosmology: flat ΛCDM, H0 = 67.7, Ωm = 0.31, ΩΛ = 0.69
-  const Om = 0.31, OL = 0.69, H0 = 1 / 14.443e9; // per year
-  const lnSinh = (x) => (x > 20 ? x - Math.LN2 : Math.log(Math.sinh(x)));
-  const lnA = (t) => Math.log(Om / OL) / 3 + (2 / 3) * lnSinh(1.5 * Math.sqrt(OL) * H0 * t);
-  const lnA0 = lnA(13.79e9);
-  const log10a = (u) => (lnA(Math.pow(10, u)) - lnA0) / Math.LN10;
-  const TDS = 2.2e-30;
-
-  const ERAS = [[U0, 14, 'Stelliferous'], [14, 40, 'Degenerate'], [40, 100, 'Black hole'], [100, 110, 'Dark']];
-  const EVENTS = [
-    [U0, 'Now, 13.8 billion years in. Stars of every mass are forming and burning, and the sky glows at 2.7 K with the afterlight of the Big Bang.'],
-    [10.33, 'About 8 billion years from now the Sun has swollen into a red giant, shed its outer layers, and settled as a white dwarf.'],
-    [11.0, 'Accelerating expansion has carried every galaxy outside our merged Local Group beyond view. The rest of the universe can no longer be seen from here.'],
-    [12.6, 'The last of the Sun-like stars are long gone. Small, dim red dwarfs, which burn for trillions of years, hold most of the remaining light.'],
-    [13.0, 'Red dwarfs, the longest-lived stars of all, begin to burn out after about ten trillion years.'],
-    [14.0, 'Star formation has ended because the gas has run out. The last stars fade. What remains are white dwarfs, brown dwarfs, neutron stars and black holes.'],
-    [15.0, 'Close passes between dead stars have stripped nearly every planet from its orbit. The white dwarfs have cooled into black dwarfs, too cold to see.'],
-    [19.0, 'The galaxy evaporates. Chance encounters fling most remnants into intergalactic space, and the rest fall into the central black hole.'],
-    [37.0, 'If protons decay, which many theories predict and no experiment has yet seen, ordinary matter is dissolving into radiation and lighter particles.'],
-    [40.0, 'Black holes are the only large objects left. Each one slowly loses mass to Hawking radiation.'],
-    [67.0, 'Stellar-mass black holes, which take 10⁶⁷ years or more, are evaporating one by one, each ending in a brief, hot burst of radiation.'],
-    [99.5, 'The largest supermassive black holes evaporate, around 10¹⁰⁰ years. Each, near the end, briefly glows hotter than any star ever did.'],
-    [100.5, 'A thin, cooling scatter of photons, neutrinos, electrons and positrons drifts through an exponentially expanding void. The temperature settles toward that of the cosmic horizon itself, about 2 × 10⁻³⁰ K. No gradient remains to drive anything.'],
-  ];
-
-  // procedural neighborhood, fixed by seed
-  const rnd = mulberry32(2026);
-  const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
-  const stars = [];
-  for (let i = 0; i < 420; i++) {
-    const r = rnd(), type = r < 0.74 ? 'red' : r < 0.95 ? 'sun' : 'big';
-    const ub = rnd() < 0.72 ? 8.7 + rnd() * 1.4 : U0 + Math.pow(rnd(), 2.2) * (13.9 - U0);
-    const life = type === 'red' ? 12.0 + rnd() * 1.1 : type === 'sun' ? 9.7 + rnd() * 0.8 : 7.0 + rnd() * 2.0;
-    const ud = Math.log10(Math.pow(10, ub) + Math.pow(10, life));
-    const T = type === 'red' ? 2900 + rnd() * 700 : type === 'sun' ? 4800 + rnd() * 1600 : 11000 + rnd() * 14000;
-    const ang = rnd() * Math.PI * 2, rad = Math.min(1.25, Math.abs(gauss()) * 0.42 + 0.03);
-    stars.push({
-      type, ub, ud, col: blackbody(T), ang, rad,
-      b: type === 'red' ? 0.32 + rnd() * 0.25 : type === 'sun' ? 0.7 + rnd() * 0.25 : 0.95 + rnd() * 0.3,
-      sz: type === 'red' ? 1.0 + rnd() * 0.5 : type === 'sun' ? 1.4 + rnd() * 0.6 : 1.9 + rnd() * 0.8,
-      rem: type === 'big' ? (rnd() < 0.35 ? 'bh' : 'ns') : 'wd',
-      evap: 66.5 + rnd() * 3.5, decay: 37 + rnd() * 3, eject: 18.6 + rnd() * 1.6, falls: rnd() < 0.1,
-      tw: rnd() * 100,
-    });
-  }
-  const galaxies = []; for (let i = 0; i < 26; i++) galaxies.push({ x: rnd(), y: rnd(), r: 6 + rnd() * 14, e: 0.3 + rnd() * 0.6, rot: rnd() * 3, fade: 10.55 + rnd() * 0.55, b: 0.18 + rnd() * 0.22 });
-  const motes = []; for (let i = 0; i < 70; i++) motes.push({ x: rnd(), y: rnd(), ph: rnd() * 10, vx: (rnd() - 0.5) * 0.004, vy: (rnd() - 0.5) * 0.004, life: 100 + rnd() * 10, c: rnd() < 0.5 ? [255, 120, 80] : [169, 200, 255] });
-
-  let s = 0, playing = false, clockT = 0, lastU = -1;
-  const aliveNow = stars.filter((st) => U0 >= st.ub && U0 < st.ud).length;
-  const clamp01 = (x) => Math.max(0, Math.min(1, x));
-  function pos(st, u, w, h) {
-    let rr = st.rad;
-    if (u > st.eject) { const p = clamp01((u - st.eject) / 1.3); rr = st.falls ? rr * (1 - p) : rr * (1 + p * p * 3); }
-    return [w / 2 + Math.cos(st.ang) * rr * w * 0.44, h / 2 + Math.sin(st.ang) * rr * h * 0.3 * 0.9 + Math.cos(st.ang) * rr * h * 0.06];
-  }
-  function draw() {
-    const u = s2u(s), { w, h, d } = fit(cv);
-    ctx.fillStyle = '#050609'; ctx.fillRect(0, 0, w, h);
-    // distant galaxies, fading from view as expansion carries them off
-    for (const gx of galaxies) {
-      const a = gx.b * clamp01((gx.fade - u) / 0.45); if (a <= 0) continue;
-      const red = clamp01((u - U0) / (gx.fade - U0));
-      const cc = [Math.round(230 - 30 * red), Math.round(215 - 120 * red), Math.round(200 - 150 * red)];
-      ctx.save(); ctx.translate(gx.x * w, gx.y * h); ctx.rotate(gx.rot); ctx.scale(1, gx.e);
-      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, gx.r * d);
-      gr.addColorStop(0, `rgba(${cc},${a})`); gr.addColorStop(1, `rgba(${cc},0)`);
-      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, gx.r * d, 0, 7); ctx.fill(); ctx.restore();
-    }
-    // diffuse glow of the living galaxy
-    let alive = 0; for (const st of stars) if (u >= st.ub && u < st.ud) alive++;
-    const glow = alive / stars.length;
-    if (glow > 0) {
-      ctx.save(); ctx.translate(w / 2, h / 2); ctx.scale(1, 0.32);
-      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.4);
-      gr.addColorStop(0, `rgba(255,214,170,${0.16 * glow + 0.02})`); gr.addColorStop(1, 'rgba(255,214,170,0)');
-      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, w * 0.4, 0, 7); ctx.fill(); ctx.restore();
-    }
-    const twk = reduced ? 0 : clockT;
-    for (const st of stars) {
-      if (u < st.ub) continue;
-      const [x, y] = pos(st, u, w, h);
-      if (x < -20 || x > w + 20 || y < -20 || y > h + 20) continue;
-      if (st.falls && u > st.eject + 1.3) continue;
-      if (u < st.ud) { // shining
-        const b = st.b * (0.88 + 0.12 * Math.sin(twk * 2.3 + st.tw));
-        ctx.fillStyle = `rgba(${st.col},${Math.min(1, b)})`;
-        ctx.beginPath(); ctx.arc(x, y, st.sz * d, 0, 7); ctx.fill();
-        if (st.type === 'big') { ctx.fillStyle = `rgba(${st.col},0.12)`; ctx.beginPath(); ctx.arc(x, y, st.sz * 3.2 * d, 0, 7); ctx.fill(); }
-        continue;
-      }
-      const age = u - st.ud;
-      if (st.rem === 'bh') {
-        if (u > st.evap + 0.25) continue;
-        const flare = clamp01(1 - Math.abs(u - st.evap) / 0.25);
-        if (u < st.evap) { ctx.strokeStyle = `rgba(235,229,217,${0.22 + 0.5 * flare})`; ctx.lineWidth = 0.8 * d; ctx.beginPath(); ctx.arc(x, y, 1.7 * d, 0, 7); ctx.stroke(); }
-        if (flare > 0) { ctx.fillStyle = `rgba(255,250,240,${flare})`; ctx.beginPath(); ctx.arc(x, y, (1 + 3 * flare) * d, 0, 7); ctx.fill(); }
-        continue;
-      }
-      if (u > st.decay) continue; // remnants dissolve if protons decay
-      const fade = st.rem === 'ns' ? 1.6 : 3.2, k = clamp01(age / fade);
-      if (k < 1) { const c = blackbody(st.rem === 'ns' ? 9000 - 6000 * k : 9000 - 7200 * k); ctx.fillStyle = `rgba(${c},${0.55 * (1 - k) + 0.06})`; ctx.beginPath(); ctx.arc(x, y, 0.9 * d, 0, 7); ctx.fill(); }
-      else { ctx.fillStyle = `rgba(120,120,135,${0.12 * clamp01((st.decay - u) / 2)})`; ctx.beginPath(); ctx.arc(x, y, 0.8 * d, 0, 7); ctx.fill(); }
-    }
-    // the central supermassive black hole
-    if (u < 100.2) {
-      const flare = clamp01(1 - Math.abs(u - 100) / 0.35), feed = clamp01((15 - u) / 5);
-      const cx = w / 2, cy = h / 2, R = 4.5 * d;
-      if (feed > 0) { const gr = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 5); gr.addColorStop(0, `rgba(255,170,110,${0.3 * feed})`); gr.addColorStop(1, 'rgba(255,170,110,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R * 5, 0, 7); ctx.fill(); }
-      if (u < 100) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill(); ctx.strokeStyle = `rgba(235,229,217,${0.35 + 0.6 * flare})`; ctx.lineWidth = d; ctx.stroke(); }
-      if (flare > 0) { const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (2 + 10 * flare)); gr.addColorStop(0, `rgba(255,252,245,${flare})`); gr.addColorStop(1, 'rgba(255,252,245,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R * (2 + 10 * flare), 0, 7); ctx.fill(); }
-    }
-    // dark era motes
-    if (u > 99.8) {
-      const dens = clamp01((u - 99.8) / 0.7);
-      for (const m of motes) {
-        if (u > m.life) continue;
-        const x = ((m.x + m.vx * twk) % 1 + 1) % 1 * w, y = ((m.y + m.vy * twk) % 1 + 1) % 1 * h;
-        const a = dens * 0.35 * clamp01((m.life - u) / 3) * (0.5 + 0.5 * Math.sin(twk * 1.3 + m.ph));
-        ctx.fillStyle = `rgba(${m.c},${a})`; ctx.fillRect(x, y, d, d);
-      }
-    }
-    readouts(u, alive);
-  }
-  function fmtYears(u) {
-    const t = Math.pow(10, u);
-    if (u < 12) return `${(t / 1e9).toFixed(t < 1e11 ? 1 : 0)} billion years`;
-    if (u < 15) return `${(t / 1e12).toFixed(t < 1e13 ? 1 : 0)} trillion years`;
-    return `10<sup>${u.toFixed(u < 20 ? 1 : 0)}</sup> years`;
-  }
-  function readouts(u, alive) {
-    if (Math.abs(u - lastU) < 1e-6) return; lastU = u;
-    $('c-t').innerHTML = fmtYears(u); $('cosTime').innerHTML = fmtYears(u);
-    const era = ERAS.find((e) => u >= e[0] - 1e-9 && u < e[1]) || ERAS[ERAS.length - 1];
-    $('cosEra').textContent = `${era[2]} era`;
-    const la = log10a(u), lT = Math.log10(2.725) - la;
-    $('c-T').innerHTML = lT > Math.log10(TDS) ? (lT > -1 ? `${Math.pow(10, lT).toFixed(2)} K` : `${sci(Math.pow(10, lT), 1)} K`) + (u < 10.2 ? ' <small>CMB</small>' : '') : `2 × 10<sup>${MINUS}30</sup> K <small>horizon</small>`;
-    $('c-a').innerHTML = la < 0.005 ? '×1' : la < 4 ? `×${Math.pow(10, la).toFixed(la < 1 ? 2 : 0)}` : `×${pow10html(la)}`;
-    $('c-n').textContent = alive ? `${Math.round((alive / aliveNow) * 100)}%` : 'none';
-    let ev = EVENTS[0][1]; for (const e of EVENTS) if (u >= e[0] - 1e-9) ev = e[1];
-    if ($('cosEvent').textContent !== ev) $('cosEvent').textContent = ev;
-  }
-  function setS(v) { s = clamp01(v); slider.value = String(Math.round(s * 1000)); draw(); }
-  // bands and ticks
-  ERAS.forEach(([a, b, name]) => { const el = document.createElement('div'); el.style.left = `${u2s(a) * 100}%`; el.style.width = `${(u2s(b) - u2s(a)) * 100}%`; el.textContent = name; $('cosBands').appendChild(el); });
-  [[U0, 'now', 0], [12, '10¹²', 1], [14, '10¹⁴', 0], [20, '10²⁰', 0], [30, '10³⁰', 1], [40, '10⁴⁰', 0], [67, '10⁶⁷', 1], [100, '10¹⁰⁰', 0]].forEach(([u, lab, opt]) => {
-    const sp = document.createElement('span'); sp.style.left = `${u2s(u) * 100}%`; sp.innerHTML = u === U0 ? 'now' : `10<sup>${Math.round(u)}</sup>`; if (opt) sp.className = 'opt';
-    if (u === U0) sp.style.transform = 'none';
-    $('cosTicks').appendChild(sp);
-  });
-  slider.addEventListener('input', () => { s = +slider.value / 1000; if (playing) togglePlay(); draw(); });
-  function togglePlay() { playing = !playing; if (playing && s >= 1) s = 0; $('cosPlay').textContent = playing ? 'Pause' : 'Play'; }
-  $('cosPlay').addEventListener('click', togglePlay);
-  $('cosNow').addEventListener('click', () => { if (playing) togglePlay(); setS(0); });
-  function tick(dtw) {
-    if (!visible.get(cv)) return;
-    const dt = Math.min(dtw, 0.05); clockT += dt;
-    if (playing) { setS(s + dt * (s < 0.32 ? 0.022 : 0.045)); if (s >= 1) togglePlay(); return; }
-    if (!reduced) draw();
-  }
-  watch(cv); setS(0);
-  return { tick, draw };
-})();
-
 /* ================= YOU ================= */
 (() => {
   const t0 = performance.now(), Pw = 100, Troom = 293.15, kln2 = 1.380649e-23 * Math.LN2;
@@ -1138,12 +1314,529 @@ const cosmos = (() => {
 let last = performance.now();
 function loop(now) {
   const dt = (now - last) / 1000; last = now;
-  hero.tick(dt); twins.tick(dt); memory.tick(dt); photons.tick(dt); cosmos.tick(dt);
+  hero.tick(dt); twins.tick(dt); memory.tick(dt); photons.tick(dt);
+  for (const f of frameHooks) f(dt);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { hero.draw(); twins.draw(); photons.draw(); cosmos.draw(); }, 120); });
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { hero.draw(); twins.draw(); photons.draw(); for (const f of resizeHooks) f(); }, 120); });
 })();
+</script>
+<script>
+(() => {
+'use strict';
+const { $, MINUS, neg } = window.ENT;
+const MSUN = 1.989e30, SKY = 2.725;
+const PRESETS = [3.003e-6, 1, 4.3e6, 6.5e9, 6.6e10];
+const PLOG = PRESETS.map((m) => Math.round(Math.log10(m) * 100) / 100);
+const slider = $('ledMass'), btns = [...$('ledPresets').children];
+let preset = 1;
+
+/* a x 10^b with d decimals; plain numbers between 0.01 and 1000 */
+function f(x, d = 1) {
+  if (x === 0) return '0';
+  let e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+  if (+m.toFixed(d) >= 10) { m /= 10; e += 1; }
+  if (e >= -2 && e <= 3) return (+x.toPrecision(d + 1)).toLocaleString('en-US', { maximumFractionDigits: 6 });
+  return `${m.toFixed(d)} × 10<sup>${neg(e)}</sup>`;
+}
+/* ENT.sci-style but always a x 10^b (years, entropy) */
+function g(x, d = 1) {
+  let e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+  if (+m.toFixed(d) >= 10) { m /= 10; e += 1; }
+  return `${m.toFixed(d)} × 10<sup>${neg(e)}</sup>`;
+}
+function width(m) {
+  const km = 5.906 * m;
+  if (km < 1e-3) return `${f(km * 1e6)} <small>mm</small>`;
+  if (km < 1) return `${f(km * 1e3)} <small>m</small>`;
+  if (km < 1e7) return `${f(km)} <small>km</small>`;
+  return `${f(km / 1.496e8)} <small>au</small>`;
+}
+function wait(T) { /* years from now until the sky is colder than the hole */
+  const a = SKY / T, k = Math.sqrt(0.69 / 0.31);
+  const x = a > 1e6 ? Math.log(2 * k) + 1.5 * Math.log(a) : Math.asinh(k * Math.pow(a, 1.5));
+  const N = (x / (1.5 * Math.sqrt(0.69))) * 14.443e9 - 13.79e9;
+  if (N < 1e9) return `about ${(+(N / 1e6).toPrecision(2)).toLocaleString('en-US')} million`;
+  return `about ${(+(N / 1e9).toPrecision(2)).toLocaleString('en-US')} billion`;
+}
+function render(m, text) {
+  const T = 6.169e-8 / m, t = 2.097e67 * m * m * m;
+  $('ledM').innerHTML = `${f(m)} <small>${m === 1 ? 'solar mass' : 'solar masses'}</small>`;
+  $('ledMkg').innerHTML = `${g(m * MSUN, 2)} kg`;
+  $('ledW').innerHTML = width(m);
+  $('ledS').innerHTML = g(1.049e77 * m * m);
+  $('ledT').innerHTML = `${f(T)} <small>K</small>`;
+  const hot = T > SKY;
+  $('ledTsub').textContent = hot ? "hotter than today's sky" : "colder than today's sky";
+  $('ledE').innerHTML = t < 1e6 ? `${f(t)} <small>years</small>` : `${g(t)} <small>years</small>`;
+  $('ledEsub').textContent = hot ? 'shrinking already' : `cannot start for ${wait(T)} years: it must wait for the sky to cool below it`;
+  slider.setAttribute('aria-valuetext', `${text} solar masses`);
+}
+function press(i) { preset = i; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i))); }
+
+btns.forEach((b, i) => b.addEventListener('click', () => {
+  press(i); slider.value = PLOG[i]; render(PRESETS[i], (+PRESETS[i].toPrecision(3)).toString());
+}));
+slider.addEventListener('input', () => {
+  const v = +slider.value, near = PLOG.findIndex((p) => Math.abs(p - v) <= 0.02);
+  if (near >= 0) { press(near); slider.value = PLOG[near]; render(PRESETS[near], (+PRESETS[near].toPrecision(3)).toString()); }
+  else { press(-1); const m = Math.pow(10, v); render(m, m.toPrecision(3)); }
+});
+render(1, '1');
+})();
+
+</script>
+<script>
+(() => {
+'use strict';
+const ENT = window.ENT;
+const { $, MINUS, reduced, mulberry32, blackbody, fit, fmtInt, sci, pow10html } = ENT;
+const track = $('dscTrack');
+if (!track) return;
+const cv = $('dscSky'), ctx = cv.getContext('2d');
+const stage = $('dscStage'), rail = $('dscRail'), topBox = $('dscTop');
+const phoneMQ = window.matchMedia('(max-width: 760px)');
+
+/* ---------------- scroll <-> time ---------------- */
+const U0 = Math.log10(13.79e9);
+// more scroll per decade near the present, where events are dense; see the rail for true log position
+const KS = [0, 1.2, 2.0, 3.0, 5.8, 9.3, 14.3, 24.3, 26.8], KU = [U0, 10.34, 10.6, 11.2, 14, 20, 40, 100, 108], SMAX = 26.8;
+function s2u(s) {
+  if (s <= 0) return U0;
+  for (let i = 1; i < KS.length; i++) if (s <= KS[i]) return KU[i - 1] + ((s - KS[i - 1]) / (KS[i] - KS[i - 1])) * (KU[i] - KU[i - 1]);
+  return KU[KU.length - 1];
+}
+function u2s(u) {
+  if (u <= U0) return 0;
+  for (let i = 1; i < KU.length; i++) if (u <= KU[i]) return KS[i - 1] + ((u - KU[i - 1]) / (KU[i] - KU[i - 1])) * (KS[i] - KS[i - 1]);
+  return SMAX;
+}
+
+/* ---------------- cosmology (as in the old section): flat ΛCDM, H0 = 67.7, Ωm = 0.31 ---------------- */
+const Om = 0.31, OL = 0.69, H0 = 1 / 14.443e9; // per year
+const lnSinh = (x) => (x > 20 ? x - Math.LN2 : Math.log(Math.sinh(x)));
+const lnA = (t) => Math.log(Om / OL) / 3 + (2 / 3) * lnSinh(1.5 * Math.sqrt(OL) * H0 * t);
+const lnA0 = lnA(13.79e9);
+const log10a = (u) => (lnA(Math.pow(10, u)) - lnA0) / Math.LN10;
+const TDS = 2.2e-30;
+
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const smooth = (x) => { x = clamp01(x); return x * x * (3 - 2 * x); };
+const TAU = Math.PI * 2;
+
+/* ---------------- the sky: one seeded neighbourhood ---------------- */
+const rnd = mulberry32(2026);
+const gauss = () => { let a = 0; while (a === 0) a = rnd(); const b = rnd(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(TAU * b); };
+const T0 = 13.79e9, POOL = 900;
+const RED = 0, SUN = 1, BIG = 2, WD = 0, NS = 1, BH = 2;
+const stars = [];
+for (let i = 0; i < POOL; i++) {
+  const r = rnd(), type = r < 0.74 ? RED : r < 0.95 ? SUN : BIG;
+  // disk layout (units of the galaxy radius), with two faint arms
+  const rd = Math.min(1.12, -Math.log(1 - rnd() * 0.96) * (type === BIG ? 0.24 : 0.29) + 0.025);
+  let th = rnd() * TAU;
+  if (rnd() < (type === BIG ? 0.85 : 0.45)) th = (rnd() < 0.5 ? 0 : Math.PI) + 2.3 * Math.log(rd + 0.06) + gauss() * 0.3;
+  const dx = Math.cos(th) * rd, dy = Math.sin(th) * rd * 0.27 + gauss() * 0.014;
+  // elliptical layout after the merger
+  let ex = gauss() * 0.27, ey = gauss() * 0.21;
+  const er = Math.hypot(ex, ey); if (er > 1.05) { ex *= 1.05 / er; ey *= 1.05 / er; }
+  // birth and death, log10 years
+  let ub, ud;
+  if (type === BIG) {
+    const life = Math.pow(10, 6.8 + rnd() * 2.1), tb = T0 - rnd() * life * 0.97;
+    ub = Math.log10(tb); ud = Math.log10(tb + life);
+  } else if (type === SUN) {
+    const life = Math.pow(10, 9.9 + rnd() * 0.35);
+    const tb = rnd() < 0.72 ? 1e9 + rnd() * (T0 - 1e9) : T0 + Math.pow(rnd(), 1.6) * (7.9e10 - T0);
+    ub = Math.log10(tb); ud = Math.log10(tb + life);
+  } else {
+    const life = Math.pow(10, 12.88 + rnd() * 1.1);
+    const tb = rnd() < 0.72 ? 1e9 + rnd() * (T0 - 1e9) : Math.pow(10, U0 + Math.pow(rnd(), 1.7) * (13 - U0));
+    ub = Math.log10(tb); ud = Math.min(13.995, Math.max(ub + 0.08, Math.log10(tb + life)));
+  }
+  const T = type === RED ? 2900 + rnd() * 700 : type === SUN ? 4900 + rnd() * 1500 : 10000 + rnd() * 16000;
+  const rem = type === BIG ? (rnd() < 0.35 ? BH : NS) : WD;
+  stars.push({
+    type, dx, dy, ex, ey, ub, ud, rem,
+    col: blackbody(T).join(','),
+    b: type === RED ? 0.36 + rnd() * 0.26 : type === SUN ? 0.72 + rnd() * 0.25 : 1,
+    sz: type === RED ? 0.85 + rnd() * 0.45 : type === SUN ? 1.2 + rnd() * 0.55 : 1.6 + rnd() * 0.8,
+    wdEnd: 15 + rnd(), wdT: type === SUN ? 22000 : 12000,
+    ue: 19 + rnd(), falls: rnd() < (rem === WD ? 0.1 : 0.16),
+    sinkR: 0.05 + rnd() * 0.13, uv: 20.7 + rnd() * 9.1, turns: (1 + rnd() * 2) * (rnd() < 0.5 ? 1 : -1),
+    ej: Math.atan2(ey, ex) + gauss() * 0.35,
+    tw: rnd() * 100, tws: 1.4 + rnd() * 2.6,
+  });
+}
+// distant galaxies, reddening and fading as expansion carries them off
+const galaxies = [];
+while (galaxies.length < 36) {
+  const x = rnd(), y = rnd();
+  const g = { x, y, r: 2.5 + rnd() * 4.5, e: 0.45 + rnd() * 0.5, rot: rnd() * Math.PI, fade: 10.55 + rnd() * 0.6, b: 0.12 + rnd() * 0.16 };
+  if (((x - 0.5) / 0.32) ** 2 + ((y - 0.5) / 0.2) ** 2 < 1) continue;
+  galaxies.push(g);
+}
+// brown-dwarf collisions: one dim red dwarf at a time, on average
+const sparks = [];
+for (let i = 0; i < 11; i++) sparks.push({ us: 14.05 + rnd() * 4.55, dur: 0.3 + rnd() * 0.35, x: gauss() * 0.25, y: gauss() * 0.2, col: blackbody(2900 + rnd() * 400).join(',') });
+// the dark era: a thin scatter of particles
+const motes = [];
+for (let i = 0; i < 40; i++) motes.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 5, vy: (rnd() - 0.5) * 5, end: 104 + rnd() * 2.6, a: 0.09 + rnd() * 0.09 });
+
+const NS_COL = blackbody(9500).join(','), GLOW = '255,214,170', FLASH = '255,252,245', BONE = '235,229,217';
+const TILT = -0.16, cT = Math.cos(TILT), sT = Math.sin(TILT);
+let W = 1, H = 1, D = 1, R = 100, nStars = 450, alive0 = 1, clk = 0;
+
+function place(st, u) { // galaxy-plane position in units of R, or null once gone
+  const k = smooth((u - 10.3) / 0.7);
+  let x = st.dx + (st.ex - st.dx) * k, y = st.dy + (st.ey - st.dy) * k;
+  if (u > st.ue) {
+    if (st.falls) {
+      const r0 = Math.hypot(x, y) || 1e-6, a0 = Math.atan2(y, x);
+      let r = r0 + (Math.min(r0, st.sinkR) - r0) * smooth((u - st.ue) / (20.5 - st.ue)), a = a0;
+      if (u > 20.5) {
+        const q = clamp01((u - 20.5) / (st.uv - 20.5));
+        if (q >= 1) return null;
+        r *= Math.pow(1 - q, 0.8); a += st.turns * TAU * q;
+      }
+      x = Math.cos(a) * r; y = Math.sin(a) * r;
+    } else {
+      const p = clamp01((u - st.ue) / 0.5), dd = p * p * 4.2;
+      x += Math.cos(st.ej) * dd; y += Math.sin(st.ej) * dd;
+    }
+  }
+  return [x, y];
+}
+// on wide screens the captions own the left side, so the sky sits right of centre
+const CX = () => W * (W / (D || 1) >= 900 ? 0.585 : 0.5);
+const toX = (x, y) => CX() + (x * cT - y * sT) * R;
+const toY = (x, y) => H / 2 + (x * sT + y * cT) * R;
+function dot(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+
+function draw(u) {
+  const d = D;
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#050609'; ctx.fillRect(0, 0, W, H);
+  if (u >= 93.4 && u < 100) return; // empty
+  const tw = reduced ? 0 : clk, rDot = Math.max(0.75 * d, 1);
+
+  if (u < 11.2) for (const g of galaxies) {
+    const a = g.b * clamp01((g.fade - u) / 0.4); if (a <= 0.003) continue;
+    const k = clamp01((u - U0) / (g.fade - U0));
+    const c = `${Math.round(228 - 18 * k)},${Math.round(214 - 110 * k)},${Math.round(200 - 140 * k)}`;
+    const rr = g.r * (1 - 0.4 * k) * d;
+    ctx.save(); ctx.translate(g.x * W, g.y * H); ctx.rotate(g.rot); ctx.scale(1, g.e);
+    const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rr);
+    gr.addColorStop(0, `rgba(${c},${a})`); gr.addColorStop(1, `rgba(${c},0)`);
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.fill(); ctx.restore();
+  }
+
+  if (u < 14) { // the diffuse glow of living stars
+    let alive = 0; for (let i = 0; i < nStars; i++) { const st = stars[i]; if (u >= st.ub && u < st.ud) alive++; }
+    const A = 0.15 * (alive / alive0);
+    if (A > 0.002) {
+      const k = smooth((u - 10.3) / 0.7);
+      ctx.save(); ctx.translate(CX(), H / 2); ctx.rotate(TILT); ctx.scale(1, 0.3 + 0.48 * k);
+      let gr = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.95);
+      gr.addColorStop(0, `rgba(${GLOW},${A})`); gr.addColorStop(0.4, `rgba(${GLOW},${A * 0.35})`); gr.addColorStop(1, `rgba(${GLOW},0)`);
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, R * 0.95, 0, TAU); ctx.fill();
+      gr = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.22);
+      gr.addColorStop(0, `rgba(${GLOW},${A * 1.3})`); gr.addColorStop(1, `rgba(${GLOW},0)`);
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, R * 0.22, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  if (u < 30) for (let i = 0; i < nStars; i++) {
+    const st = stars[i];
+    if (u < st.ub) continue;
+    const p = place(st, u); if (!p) continue;
+    const X = toX(p[0], p[1]), Y = toY(p[0], p[1]);
+    if (X < -12 || X > W + 12 || Y < -12 || Y > H + 12) continue;
+    if (u < st.ud) { // shining
+      let a = st.b * clamp01((u - st.ub) / 0.03) * (0.25 + 0.75 * clamp01((st.ud - u) / 0.025));
+      if (tw) a *= 1 + 0.12 * Math.sin(tw * st.tws + st.tw);
+      ctx.fillStyle = `rgba(${st.col},${Math.min(1, a)})`;
+      dot(X, Y, st.sz * d);
+      if (st.type === BIG) { ctx.fillStyle = `rgba(${st.col},${0.12 * a})`; dot(X, Y, st.sz * 3.4 * d); }
+      continue;
+    }
+    // remnants
+    const born = clamp01((u - st.ud) / 0.025);
+    if (st.rem === WD) {
+      if (u >= st.wdEnd) continue;
+      const span = st.wdEnd - st.ud, k = clamp01((u - st.ud) / span);
+      const T = st.wdT * Math.pow(2000 / st.wdT, k);
+      const a = u < 14 ? 0.3 - 0.17 * clamp01((u - st.ud) / Math.max(0.01, 14 - st.ud)) : 0.13 * (1 - clamp01((u - 14) / (st.wdEnd - 14)));
+      ctx.fillStyle = `rgba(${blackbody(T).join(',')},${a * born})`;
+      dot(X, Y, rDot);
+    } else if (st.rem === NS) {
+      ctx.fillStyle = `rgba(${NS_COL},${(0.14 - 0.04 * clamp01((u - 12) / 7)) * born})`;
+      dot(X, Y, rDot);
+    } else {
+      ctx.strokeStyle = `rgba(${BONE},${0.1 * born})`; ctx.lineWidth = 0.6 * d;
+      ctx.beginPath(); ctx.arc(X, Y, 1.35 * d, 0, TAU); ctx.stroke();
+    }
+  }
+
+  if (u > 14 && u < 19.2) for (const sp of sparks) { // collisions of brown dwarfs
+    if (u < sp.us || u > sp.us + sp.dur) continue;
+    const a = 0.5 * clamp01((u - sp.us) / 0.05) * clamp01((sp.us + sp.dur - u) / 0.12);
+    ctx.fillStyle = `rgba(${sp.col},${a})`;
+    dot(toX(sp.x, sp.y), toY(sp.x, sp.y), 1.05 * d);
+  }
+
+  // the central black hole, its last moments, and the flash
+  const cx = CX(), cy = H / 2, rb = 5.5 * d;
+  if (u < 93) {
+    const end = smooth((u - 92.6) / 0.4);
+    if (end > 0) {
+      const gr = ctx.createRadialGradient(cx, cy, rb, cx, cy, rb * 4);
+      gr.addColorStop(0, `rgba(${FLASH},${0.18 * end})`); gr.addColorStop(1, `rgba(${FLASH},0)`);
+      ctx.fillStyle = gr; dot(cx, cy, rb * 4);
+    }
+    ctx.fillStyle = '#000'; dot(cx, cy, rb);
+    ctx.strokeStyle = `rgba(${BONE},${(u < 14 ? 0.3 : 0.38) + 0.6 * end})`; ctx.lineWidth = d;
+    ctx.beginPath(); ctx.arc(cx, cy, rb, 0, TAU); ctx.stroke();
+  }
+  const f = 1 - Math.abs(u - 93) / 0.3;
+  if (f > 0) {
+    const I = f * f, fr = 0.25 * Math.min(W, H) * (0.35 + 0.65 * f);
+    const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, fr);
+    [[0, 1], [0.07, 0.72], [0.18, 0.4], [0.36, 0.16], [0.62, 0.045], [1, 0]].forEach(([o, k]) => gr.addColorStop(o, `rgba(${FLASH},${k * I})`));
+    ctx.fillStyle = gr; dot(cx, cy, fr);
+  }
+
+  if (u >= 100 && u < 107) {
+    const fin = clamp01((u - 100) / 0.6), mt = reduced ? 0 : clk;
+    for (const m of motes) {
+      const a = m.a * fin * clamp01((m.end - u) / 0.8); if (a <= 0) continue;
+      const x = ((((m.x * W + m.vx * mt * d) % W) + W) % W), y = ((((m.y * H + m.vy * mt * d) % H) + H) % H);
+      ctx.fillStyle = `rgba(${BONE},${a})`; ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(d)), Math.max(1, Math.round(d)));
+    }
+  }
+}
+
+/* ---------------- HUD ---------------- */
+const elClock = $('dscClock'), elEra = $('dscEra'), elRatio = $('dscRatio'), elTemp = $('dscTemp'), elStretch = $('dscStretch');
+const elHead = $('dscInvHead'), elPips = $('dscPips'), elList = $('dscInvList'), elLost = $('dscLost'), elProton = $('dscProton');
+let decay = true;
+const ITEMS = [['Other galaxies in view', 11.2], ['New stars forming', 13], ['Starlight', 14], ['Planets in orbit', 15], ['Galaxies', 20], ['Atoms', 40], ['Black holes', 100], ['Temperature differences', 100.5]];
+const endOf = (it) => (it[0] === 'Atoms' && !decay ? Infinity : it[1]);
+const lis = ITEMS.map((it) => { const li = document.createElement('li'); li.innerHTML = `<span>${it[0]}</span><span></span>`; elList.appendChild(li); return li; });
+const pips = ITEMS.map(() => { const p = document.createElement('i'); elPips.appendChild(p); return p; });
+function inventoryEnds() {
+  ITEMS.forEach((it, i) => { const e = endOf(it); lis[i].lastChild.innerHTML = e === Infinity ? 'never' : `10<sup>${it[1]}</sup>`; });
+}
+
+function fmtYears(u) {
+  const t = Math.pow(10, u);
+  const n = (x) => (x < 99.95 ? x.toFixed(1) : String(Math.round(x)));
+  if (u < 12) { const v = n(t / 1e9); if (+v < 1000) return `${v} billion years`; }
+  if (u < 15) { const v = n(t / 1e12); if (+v < 1000) return `${v} trillion years`; }
+  return `10<sup>${u < 20 ? Math.min(u, 19.95).toFixed(1) : Math.floor(u + 0.005)}</sup> years`;
+}
+const eraOf = (u) => (u < 14 ? 'Stelliferous era' : u < 40 ? 'Degenerate era' : u < 100 ? 'Black hole era' : 'Dark era');
+function tempHTML(u, la) {
+  const lT = Math.log10(2.725) - la;
+  if (lT <= Math.log10(TDS)) return `2 × 10<sup>${MINUS}30</sup> K <small>· horizon</small>`;
+  const T = Math.pow(10, lT);
+  return (lT > -1 ? `${(Math.round(T * 100 + 1e-6) / 100).toFixed(2)} K` : `${sci(T, 1)} K`) + (u < 10.2 ? ' <small>CMB</small>' : '');
+}
+function stretchHTML(la) {
+  if (la < 0.005) return '×1';
+  if (la < 4) { const a = Math.pow(10, la); return `×${la < 1 ? a.toFixed(2) : fmtInt(a)}`; }
+  return `×${pow10html(la)}`;
+}
+const setHTML = (el, html) => { if (el._h !== html) { el._h = html; el.innerHTML = html; } };
+let invKey = '';
+function hud(u) {
+  setHTML(elClock, fmtYears(u));
+  setHTML(elEra, eraOf(u));
+  const x = u - U0;
+  setHTML(elRatio, x < 0.05 ? '&nbsp;' : `10<sup>${x.toFixed(1)}</sup> × the universe's present age`);
+  const la = log10a(u);
+  setHTML(elTemp, tempHTML(u, la));
+  setHTML(elStretch, stretchHTML(la));
+  // inventory
+  let left = 0, lost = null;
+  const gone = ITEMS.map((it) => { const e = endOf(it), g = u >= e; if (!g) left++; else if (!lost || e > endOf(lost)) lost = it; return g; });
+  const key = gone.join() + decay;
+  if (key !== invKey) {
+    invKey = key;
+    gone.forEach((g, i) => { lis[i].classList.toggle('dsc-gone', g); pips[i].classList.toggle('dsc-gone', g); });
+    elHead.textContent = `Still possible · ${left} of ${ITEMS.length}`;
+    elLost.textContent = lost ? `Lost: ${lost[0].toLowerCase()}` : 'Lost: nothing yet';
+  }
+  elProton.classList.toggle('dsc-on', u >= 33);
+  // rail marker
+  const y = clamp01((u - 10) / 98) * railH;
+  railMark.style.transform = `translateY(${y.toFixed(1)}px)`;
+  railDone.style.transform = `scaleY(${(railH ? y / railH : 0).toFixed(4)})`;
+}
+
+/* ---------------- depth rail ---------------- */
+const rp = (u) => `${(((u - 10) / 98) * 100).toFixed(3)}%`;
+let railHTML = '<i class="dsc-rl"></i><i class="dsc-rd"></i>';
+for (let u = 20; u <= 100; u += 10) {
+  railHTML += `<i class="dsc-rt" style="top:${rp(u)}"></i>`;
+  if (u % 20 === 0) railHTML += `<span class="dsc-rlab${u === 20 || u === 60 || u === 100 ? '' : ' dsc-opt'}" style="top:${rp(u)}">10<sup>${u}</sup></span>`;
+}
+for (const u of [14, 40, 100]) railHTML += `<i class="dsc-re" style="top:${rp(u)}"></i>`;
+railHTML += `<i class="dsc-rs" style="top:${rp(U0)};height:${(((14 - U0) / 98) * 100).toFixed(3)}%"></i><span class="dsc-rsl" style="top:${rp((U0 + 14) / 2)}">stars</span>`;
+railHTML += '<i class="dsc-rm"></i>';
+rail.innerHTML = railHTML;
+const railMark = rail.querySelector('.dsc-rm'), railDone = rail.querySelector('.dsc-rd');
+let railH = 0;
+
+/* ---------------- captions ---------------- */
+const cards = [...$('dscCards').children].map((el) => ({ el, u: +el.dataset.u, br: el.dataset.branch || '', top: 0, h: 0, op: -1, cut: -1 }));
+let shown = [], fadeLine = 0;
+function layoutCards() {
+  cards.forEach((c) => { if (c.br) c.el.hidden = (c.br === 'd') !== decay; });
+  shown = cards.filter((c) => !c.el.hidden);
+  shown.forEach((c) => { c.h = c.el.offsetHeight; });
+  let prev = -Infinity;
+  for (const c of shown) {
+    let top = (u2s(c.u) + 0.58) * SH;
+    if (top < prev + 24) top = prev + 24;
+    c.top = top; prev = top + c.h;
+  }
+  shown.forEach((c) => { c.el.style.top = `${Math.round(c.top)}px`; c.op = -1; c.cut = -1; });
+}
+function fadeCards(y) {
+  // captions fade out before they reach the HUD block above them; on phones they also
+  // emerge from a soft edge above the reserved strip for the .you counter
+  const stageTop = Math.max(0, Math.min(SMAX * SH, y - trackTop));
+  const floor = phoneMQ.matches ? window.innerHeight - 64 : Infinity;
+  for (const c of shown) {
+    const rel = c.top - stageTop;
+    if ((rel > SH + 40 || rel + c.h < -40) && c.op >= 0 && c.cut === 0) continue;
+    let op = Math.round(clamp01((rel - fadeLine) / (phoneMQ.matches ? 50 : 70)) * 50) / 50;
+    const vp = trackTop + c.top - y;
+    const cut = Math.max(0, Math.min(c.h, Math.round(vp + c.h - floor)));
+    if (cut >= c.h - 2) op = 0;
+    if (op !== c.op) {
+      c.op = op;
+      c.el.style.opacity = op;
+      c.el.style.visibility = op === 0 ? 'hidden' : '';
+    }
+    if (cut !== c.cut) {
+      c.cut = cut;
+      const m = cut > 0 ? `linear-gradient(#000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
+      c.el.style.webkitMaskImage = m; c.el.style.maskImage = m;
+    }
+  }
+}
+
+/* ---------------- layout ---------------- */
+let SH = window.innerHeight, lastVW = 0, trackTop = 0;
+function measureTrack() { trackTop = track.getBoundingClientRect().top + window.scrollY; }
+function layout(force) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (force || vw !== lastVW || Math.abs(vh - SH) >= 120) { SH = vh; track.style.setProperty('--dsc-h', `${SH}px`); }
+  lastVW = vw;
+  // rail starts below the HUD block on phones
+  if (phoneMQ.matches) rail.style.top = `${Math.round(topBox.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 16)}px`;
+  else rail.style.top = '';
+  railH = rail.clientHeight;
+  // fade line: lowest HUD element that sits over the caption column
+  const st = stage.getBoundingClientRect();
+  const probe = shown[0] || cards[0];
+  const cr = probe.el.getBoundingClientRect();
+  fadeLine = 0;
+  for (const el of [$('dscClockbox'), $('dscSide')]) {
+    const r = el.getBoundingClientRect();
+    if (r.right > cr.left && r.left < cr.right) fadeLine = Math.max(fadeLine, r.bottom - st.top);
+  }
+  fadeLine += 10;
+  const dims = fit(cv); W = dims.w; H = dims.h; D = dims.d;
+  const cw = W / D, ch = H / D;
+  R = Math.min(cw * 0.44, ch * 0.42, Math.max(cw, ch) * 0.3) * D;
+  nStars = Math.round(Math.max(300, Math.min(900, 450 + ((cw * ch - 330e3) / (1224e3 - 330e3)) * 450)));
+  alive0 = 0; for (let i = 0; i < nStars; i++) if (U0 >= stars[i].ub && U0 < stars[i].ud) alive0++;
+  alive0 = Math.max(1, alive0);
+  layoutCards();
+  measureTrack();
+  lastU = NaN; lastY = NaN; dirty = true;
+}
+
+/* ---------------- proton branch ---------------- */
+const bDecay = $('dscDecay'), bLast = $('dscLast');
+function setBranch(d) {
+  if (d === decay) return;
+  decay = d;
+  bDecay.setAttribute('aria-pressed', String(d)); bLast.setAttribute('aria-pressed', String(!d));
+  inventoryEnds(); invKey = '';
+  layoutCards(); lastU = NaN; lastY = NaN;
+}
+bDecay.addEventListener('click', () => setBranch(true));
+bLast.addEventListener('click', () => setBranch(false));
+
+/* ---------------- auto-descend ---------------- */
+const autoBtns = [$('dscAuto'), $('dscAuto2')];
+let auto = false, autoAcc = 0, autoExpect = 0;
+function setAuto(on) {
+  auto = on; autoAcc = 0; autoExpect = window.scrollY;
+  autoBtns.forEach((b) => { b.textContent = on ? 'Stop' : 'Descend for me'; });
+}
+if (reduced) autoBtns.forEach((b) => { b.hidden = true; });
+else autoBtns.forEach((b) => b.addEventListener('click', () => {
+  if (auto) { setAuto(false); return; }
+  measureTrack();
+  if (window.scrollY >= trackTop + SMAX * SH - 2) return;
+  setAuto(true);
+}));
+const fromAutoBtn = (e) => e.target && e.target.closest && e.target.closest('.dsc-auto');
+const stopAuto = (e) => { if (auto && !fromAutoBtn(e)) setAuto(false); };
+window.addEventListener('wheel', stopAuto, { passive: true });
+window.addEventListener('touchstart', stopAuto, { passive: true });
+window.addEventListener('keydown', (e) => {
+  if (!auto) return;
+  if ((e.key === 'Enter' || e.key === ' ') && fromAutoBtn(e)) return;
+  setAuto(false);
+});
+function autoStep(dt) {
+  const y = window.scrollY, end = trackTop + SMAX * SH;
+  if (y >= end - 1 || Math.abs(y - autoExpect) > SH * 0.5) { setAuto(false); return; }
+  let v = 0.16 * SH;
+  if (y < trackTop - 2) v = Math.min(3 * SH, Math.max(v, (trackTop - y) * 2.2)); // glide down to the start
+  autoAcc += v * Math.min(dt, 0.1);
+  let step = Math.floor(autoAcc);
+  if (step < 1) return;
+  if (y + step > end) step = Math.max(1, Math.ceil(end - y));
+  autoAcc -= step;
+  window.scrollBy(0, step);
+  autoExpect = y + step;
+}
+
+/* ---------------- frame loop ---------------- */
+let lastU = NaN, lastY = NaN, dirty = true;
+ENT.watch(track);
+ENT.onFrame((dt) => {
+  if (auto) autoStep(dt);
+  if (!ENT.isVisible(track)) return;
+  clk += Math.min(dt, 0.1);
+  const y = window.scrollY;
+  const u = s2u(Math.max(0, Math.min(SMAX, (y - trackTop) / SH)));
+  const moving = !reduced && (u < 14 || (u >= 100 && u < 107));
+  if (u !== lastU || dirty || moving) { draw(u); dirty = false; }
+  if (u !== lastU) { hud(u); lastU = u; }
+  if (y !== lastY) { fadeCards(y); lastY = y; }
+});
+ENT.onResize(() => layout(false));
+if ('ResizeObserver' in window) new ResizeObserver(() => { measureTrack(); lastY = NaN; dirty = true; }).observe(document.body);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layout(true));
+window.addEventListener('load', () => layout(true));
+
+inventoryEnds();
+layout(true);
+const u0 = s2u(Math.max(0, Math.min(SMAX, (window.scrollY - trackTop) / SH)));
+draw(u0); hud(u0); lastU = u0;
+fadeCards(window.scrollY); lastY = window.scrollY;
+})();
+
 </script>
 </body>
 </html>

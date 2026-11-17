@@ -1,0 +1,65 @@
+/* ---------- 05 ledger ---------- */
+#ledger .led-plot { --lw: 250px; --vw: 112px; --g: 16px; padding: 14px 18px 12px; }
+.led-cap { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); line-height: 1.4; margin: 0 0 12px; }
+.led-rows { position: relative; }
+.led-grid { position: absolute; top: 0; bottom: 0; left: calc(var(--lw) + var(--g)); right: calc(var(--vw) + var(--g)); pointer-events: none; }
+.led-grid i { position: absolute; top: 0; bottom: 0; width: 1px; margin-left: -0.5px; background: var(--line); }
+.led-row { position: relative; z-index: 1; display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) var(--vw); column-gap: var(--g); align-items: center; }
+.led-lab { grid-column: 1; grid-row: 1; font-size: 16px; line-height: 1.25; padding: 4px 0; }
+.led-track { grid-column: 2; grid-row: 1; position: relative; height: 30px; }
+.led-val { grid-column: 3; grid-row: 1; text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.led-axis { z-index: 0; }
+.led-axis .led-track { height: 18px; font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
+.led-axis .led-track span { position: absolute; top: 2px; transform: translateX(-50%); white-space: nowrap; }
+.led-axis:first-of-type { margin-bottom: 2px; }
+.led-leader { position: absolute; left: 0; top: 50%; height: 1px; background: var(--dim); opacity: 0.6; }
+.led-dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--bone); }
+.led-bh .led-dot, .led-tot .led-dot { background: var(--ember); }
+.led-bh .led-leader, .led-tot .led-leader { background: var(--ember); opacity: 0.55; }
+.led-tot { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+.led-tot .led-dot { width: 14px; height: 14px; margin: -7px 0 0 -7px; }
+.led-tot .led-lab, .led-ceil .led-lab, .led-tot .led-val, .led-ceil .led-val { font-weight: 500; }
+.led-tot .led-val { color: var(--ember); }
+.led-ceil .led-dot { background: var(--ice); width: 12px; height: 12px; margin: -6px 0 0 -6px; }
+.led-ceil .led-leader { background: var(--ice); opacity: 0.5; }
+.led-ceil .led-val { color: var(--ice); }
+.led-gap .led-lab, .led-gap .led-val { visibility: hidden; }
+.led-gap .led-track { height: 64px; }
+.led-band { position: absolute; top: 0; bottom: 0; background: rgba(169, 200, 255, 0.07); border-left: 1px dashed var(--ice); border-right: 1px dashed var(--ice); display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 6px; }
+.led-band span { font-family: var(--mono); font-size: 11.5px; line-height: 1.4; color: var(--ice); letter-spacing: 0.02em; }
+@media (max-width: 700px) {
+  #ledger .led-plot { padding: 12px 12px 10px; }
+  .led-grid { left: 0; right: 0; }
+  .led-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .led-lab { grid-column: 1; grid-row: 1; padding: 6px 0 0; }
+  .led-val { grid-column: 2; grid-row: 1; align-self: baseline; }
+  .led-lab { align-self: baseline; }
+  .led-track { grid-column: 1 / -1; grid-row: 2; height: 20px; }
+  .led-axis .led-track { grid-row: 1; height: 18px; }
+  .led-gap .led-lab, .led-gap .led-val { display: none; }
+  .led-gap .led-track { grid-row: 1; height: 56px; }
+  .led-tot { padding-top: 2px; }
+}
+
+/* black hole bookkeeping */
+.led-h3 { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bone); margin: 0; }
+.led-controls { gap: 14px 20px; margin-top: 16px; align-items: center; }
+.led-presets { display: flex; flex-wrap: wrap; border: 0; padding: 0 1px 1px 0; }
+.led-presets button, .led-presets button:last-child { border: 1px solid var(--line); margin: 0 -1px -1px 0; position: relative; min-height: 40px; padding: 8px 14px; }
+.led-presets button:hover, .led-presets button[aria-pressed="true"] { z-index: 1; }
+.led-slider { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0; }
+.led-slider .ctl-label { margin: 0; }
+#ledMass { flex: 1; min-width: 0; height: 40px; }
+#ledMass::-webkit-slider-runnable-track { background: var(--dim); }
+#ledMass::-moz-range-track { background: var(--dim); }
+.led-ro { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.led-ro .ro { grid-column: span 2; }
+.led-ro .ro:nth-child(n+4) { grid-column: span 3; }
+.led-ro .v { font-size: 19px; overflow-wrap: anywhere; }
+.led-sub { font-family: var(--mono); font-size: 12px; line-height: 1.45; color: var(--dim); margin-top: 4px; }
+@media (max-width: 700px) {
+  .led-ro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .led-ro .ro, .led-ro .ro:nth-child(n+4) { grid-column: span 1; }
+  .led-ro .ro:last-child { grid-column: 1 / -1; }
+}
+.led-presets button[aria-pressed="true"]:hover { background: var(--ember); }
