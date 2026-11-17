@@ -73,6 +73,8 @@ button {
 }
 button:hover { border-color: var(--ember); }
 .seg button:hover { background: #161925; }
+.seg button[aria-pressed="true"]:hover { background: var(--ember); }
+.prose sup sup { font-size: 0.86em; }
 button[aria-pressed="true"] { background: var(--ember); color: #160b05; }
 button.primary { border-color: var(--ember); color: var(--ember); }
 button.primary:hover { background: var(--ember); color: #160b05; }
@@ -172,6 +174,106 @@ footer a { color: var(--dim); }
 .you .hot { color: var(--ember); }
 @media (max-width: 520px) { .you { left: 8px; right: 8px; bottom: 8px; max-width: none; font-size: 11px; padding: 6px 10px; } .you .long { display: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* ---------- 05 inventory ---------- */
+.inv-skip { margin: 18px 0 0; font-family: var(--mono); font-size: 13px; }
+.inv-skip a { display: inline-block; padding: 11px 4px 11px 0; }
+
+.inv {
+  /* gutters shared by HUD and captions: the page's .wrap text edge */
+  --inv-gl: max(24px, calc((100% - 1140px) / 2 + 24px));
+  --inv-gr: max(24px, calc((100% - 1140px) / 2 + 24px));
+  --inv-sw: 300px;
+  --inv-h: 100vh;
+  position: relative;
+  height: calc(var(--inv-h) * 13.6);
+  background: #050609;
+}
+.inv-stage { position: sticky; top: 0; height: var(--inv-h); overflow: hidden; background: #050609; }
+.inv-stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.inv-hud { position: absolute; inset: 0; pointer-events: none; color: var(--bone); }
+
+/* scale */
+.inv-top { display: contents; }
+.inv-scalebox { position: absolute; top: 24px; left: var(--inv-gl); }
+.inv-l { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); line-height: 1.4; }
+.inv-l small { font-size: 0.9em; letter-spacing: 0.04em; text-transform: none; color: #6c6f7a; margin-left: 4px; }
+.inv-scale {
+  font-family: var(--display); font-style: italic; font-weight: 300;
+  font-size: 50px; line-height: 1.08; letter-spacing: -0.012em; white-space: nowrap; margin-top: 2px;
+  font-variation-settings: "opsz" 72; font-variant-numeric: lining-nums tabular-nums;
+}
+.inv-name { margin-top: 6px; font-family: var(--mono); font-size: 12px; line-height: 1.5; color: var(--dim); white-space: nowrap; }
+
+/* readouts */
+.inv-side { position: absolute; top: 30px; right: var(--inv-gr); width: var(--inv-sw); }
+.inv-ros { display: grid; gap: 12px; }
+.inv-v { font-family: var(--mono); font-size: 15px; line-height: 1.35; margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.inv-dot { margin-top: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.4; color: var(--dim); white-space: nowrap; }
+.inv-dot.inv-off { visibility: hidden; }
+
+/* the count during the pan */
+.inv-pan { position: absolute; top: 230px; right: var(--inv-gr); width: var(--inv-sw); font-family: var(--mono); visibility: hidden; opacity: 0; }
+.inv-pan-n { font-size: 16px; line-height: 1.45; color: var(--dim); font-variant-numeric: tabular-nums; }
+.inv-pan-n b { color: var(--bone); font-weight: 500; }
+.inv-pace { margin-top: 6px; font-size: 12.5px; line-height: 1.5; color: var(--dim); font-variant-numeric: tabular-nums; min-height: 3em; }
+
+/* scale bar */
+.inv-bar { position: absolute; left: var(--inv-gl); bottom: 28px; width: 170px; font-family: var(--mono); font-size: 11px; line-height: 1.3; color: var(--dim); }
+.inv-bar-l { white-space: nowrap; }
+.inv-bar-track { position: relative; height: 7px; margin-top: 5px; }
+.inv-bar-track i { position: absolute; display: block; bottom: 0; left: 0; background: var(--bone); opacity: 0.75; }
+.inv-bar-t0, .inv-bar-t1 { width: 1px; height: 7px; }
+.inv-bar-line { width: 160px; height: 1px; transform-origin: left; will-change: transform; }
+.inv-bar-t1 { will-change: transform; }
+
+/* captions */
+.inv-cards { position: absolute; inset: 0; pointer-events: none; }
+.inv-card {
+  position: absolute; top: 0; left: var(--inv-gl);
+  width: min(29rem, calc(100% - var(--inv-gl) - var(--inv-gr) - var(--inv-sw) - 40px));
+  background: rgba(7, 8, 12, 0.78); border-left: 1px solid var(--line);
+  padding: 14px 20px 17px 19px; pointer-events: auto;
+}
+.inv-where { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--ember); margin: 0 0 7px; line-height: 1.4; }
+.inv-card p { margin: 0; font-size: 20px; line-height: 1.45; font-variation-settings: "opsz" 24; text-wrap: pretty; }
+.inv-card.inv-voice p { font-style: italic; }
+
+/* outro */
+.inv-outro { border-top: 0; padding-top: 72px; }
+.inv-big {
+  font-family: var(--mono); color: var(--bone); font-weight: 400;
+  font-size: clamp(22px, 5.2vw, 54px); line-height: 1.15; letter-spacing: -0.01em;
+  margin: 0 0 16px; font-variant-numeric: tabular-nums;
+}
+.inv-kick { margin-bottom: 30px; }
+
+@media (max-width: 760px) {
+  .inv-top { display: block; position: absolute; top: 10px; left: 16px; right: 16px; }
+  .inv-scalebox, .inv-side { position: static; width: auto; }
+  .inv-l { font-size: 9.5px; line-height: 1.3; }
+  .inv-scale { font-size: 30px; margin-top: 1px; }
+  .inv-name { margin-top: 2px; font-size: 11px; line-height: 1.4; }
+  .inv-side { margin-top: 10px; }
+  .inv-ros { gap: 5px; }
+  .inv-v { font-size: 12.5px; line-height: 1.3; margin-top: 0; }
+  .inv-dot { margin-top: 6px; font-size: 11px; }
+  .inv-pan { top: auto; bottom: 96px; left: 16px; right: 16px; width: auto; }
+  .inv-pan-n { font-size: 14px; line-height: 1.4; }
+  .inv-pace { margin-top: 3px; font-size: 11.5px; line-height: 1.45; min-height: 2.9em; }
+  .inv-bar { left: 16px; bottom: 52px; font-size: 10.5px; }
+  .inv-card { left: 16px; right: 16px; width: auto; padding: 12px 14px 14px 15px; }
+  .inv-where { font-size: 10.5px; margin-bottom: 5px; }
+  .inv-card p { font-size: 18px; line-height: 1.42; }
+}
+/* short phones: a tighter HUD leaves room for the captions */
+@media (max-width: 760px) and (max-height: 720px) {
+  .inv-top { top: 6px; }
+  .inv-scale { font-size: 26px; }
+  .inv-side { margin-top: 6px; }
+  .inv-ros { gap: 3px; }
+  .inv-card p { font-size: 17px; line-height: 1.38; }
+}
+
 /* ---------- 05 ledger ---------- */
 #ledger .led-plot { --lw: 250px; --vw: 112px; --g: 16px; padding: 14px 18px 12px; }
 .led-cap { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); line-height: 1.4; margin: 0 0 12px; }
@@ -238,7 +340,39 @@ footer a { color: var(--dim); }
 }
 .led-presets button[aria-pressed="true"]:hover { background: var(--ember); }
 
-/* ---------- 06 descent ---------- */
+/* ---------- 08 after ---------- */
+#after .prose sup { font-size: 0.7em; vertical-align: 0.6em; }
+#after .prose sup sup { font-size: 0.86em; vertical-align: 0.7em; }
+#after .eq .f sup { font-size: 0.7em; }
+.aft-box canvas { aspect-ratio: 2 / 1; }
+@media (max-width: 620px) { .aft-box canvas { aspect-ratio: 3 / 2; } }
+.aft-inst .seg button, .aft-inst .controls > button, #aftWait { min-height: 40px; min-width: 44px; }
+#aftWait { padding-left: 28px; padding-right: 28px; }
+.aft-inst .ro .v { white-space: nowrap; }
+.aft-inst .ro .v small { font-size: 12px; }
+.aft-end { padding-bottom: 72px; }
+
+/* the final overlay */
+.aft-ov {
+  position: fixed; inset: 0; z-index: 1000; background: #050609; color: var(--bone);
+  opacity: 0; touch-action: none; cursor: pointer; outline: none; overflow: hidden;
+}
+.aft-ov.in { opacity: 1; transition: opacity 1.6s ease-in-out; }
+.aft-ov.out { opacity: 0; transition: opacity 2.4s ease-in-out; }
+.aft-ov.snap { opacity: 1; transition: none; }
+.aft-ov.cut { transition: none; }
+.aft-line {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 0 24px; opacity: 0; transition: opacity 1.2s ease-in-out; pointer-events: none;
+}
+.aft-ov.cut .aft-line { transition: none; }
+.aft-line.on { opacity: 1; }
+.aft-line > span { display: block; font-family: var(--display); font-style: italic; font-weight: 300; font-size: clamp(28px, 6vw, 64px); line-height: 1.5; letter-spacing: -0.01em; font-variation-settings: "opsz" 72; }
+.aft-line.txt > span { font-style: normal; font-weight: 400; font-size: clamp(19px, 5vw, 22px); line-height: 1.5; max-width: 30rem; letter-spacing: 0; font-variation-settings: "opsz" 24; }
+.aft-ov sup { font-size: 0.78em; vertical-align: 0.5em; }
+.aft-ov sup sup { font-size: 0.9em; vertical-align: 0.55em; }
+
+/* ---------- 07 descent ---------- */
 .dsc-start { margin-top: 26px; }
 .dsc-skip { font-family: var(--mono); font-size: 13px; padding: 11px 4px; }
 .dsc-note { margin: 22px 0 0; }
@@ -249,6 +383,7 @@ footer a { color: var(--dim); }
   --dsc-gr: max(96px, calc((100% - 1140px) / 2 + 24px));
   --dsc-sw: 244px;
   --dsc-h: 100vh;
+  --dsc-cw: min(29rem, calc(100% - var(--dsc-gl) - var(--dsc-gr) - var(--dsc-sw) - 40px));
   position: relative;
   height: calc(var(--dsc-h) * 27.8);
   background: #050609;
@@ -260,15 +395,39 @@ footer a { color: var(--dim); }
 
 /* clock */
 .dsc-top { display: contents; }
-.dsc-clockbox { position: absolute; top: 24px; left: var(--dsc-gl); }
+.dsc-clockbox { position: absolute; top: 24px; left: var(--dsc-gl); width: var(--dsc-cw); }
 .dsc-clock {
   font-family: var(--display); font-style: italic; font-weight: 300;
   font-size: 50px; line-height: 1.08; letter-spacing: -0.012em; white-space: nowrap;
   font-variation-settings: "opsz" 72; font-variant-numeric: lining-nums tabular-nums;
 }
 .dsc-sub { margin-top: 8px; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--dim); }
-.dsc-sub span { display: block; white-space: nowrap; }
+.dsc-sub span { display: block; white-space: nowrap; min-height: 1.55em; }
 .dsc-sub sup { font-size: 0.75em; vertical-align: 0.5em; }
+
+/* the two draining counters: the heaviest numbers on the stage after the clock */
+.dsc-counts { margin-top: 20px; display: grid; gap: 13px; }
+.dsc-n {
+  font-family: var(--mono); font-size: 17px; line-height: 1.3; margin-top: 3px; color: var(--bone);
+  font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: 0.01em; transition: color .6s;
+}
+.dsc-n.dsc-zero { color: var(--dim); }
+.dsc-cs { font-family: var(--mono); font-size: 10.5px; line-height: 1.4; color: var(--dim); margin-top: 1px; white-space: nowrap; }
+.dsc-nrow { display: flex; align-items: baseline; gap: 14px; margin-top: 3px; }
+.dsc-nrow .dsc-n { margin-top: 0; }
+
+/* your atom */
+.dsc-atom {
+  margin: 20px 0 0; min-height: 4.2em; font-family: var(--display); font-style: italic; font-size: 16px; line-height: 1.4;
+  color: rgba(235, 229, 217, 0.85); font-variation-settings: "opsz" 16; text-wrap: pretty;
+}
+.dsc-atom-l {
+  font-family: var(--mono); font-style: normal; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ember); margin-right: 0.35em; position: relative; top: -0.08em;
+}
+.dsc-atom sup { font-size: 0.72em; line-height: 0; }
+.dsc-new { animation: dsc-in .7s ease-out; }
+@keyframes dsc-in { from { opacity: 0; } }
 
 /* right-hand column: readouts, inventory, controls */
 .dsc-side { position: absolute; top: 30px; right: var(--dsc-gr); width: var(--dsc-sw); }
@@ -331,11 +490,22 @@ footer a { color: var(--dim); }
   .dsc-top { display: block; position: absolute; top: 12px; left: 16px; right: 16px; }
   .dsc-clockbox, .dsc-side { position: static; width: auto; }
   .dsc-clock { font-size: 31px; }
-  .dsc-sub { margin-top: 4px; font-size: 11px; line-height: 1.5; }
-  .dsc-side { margin-top: 12px; }
+  .dsc-sub { margin-top: 6px; font-size: 10.5px; line-height: 1.45; display: flex; white-space: nowrap; }
+  .dsc-sub span { display: inline; min-height: 0; }
+  .dsc-ratio:not(:empty)::before { content: "\00b7"; margin: 0 0.6em; }
+  .dsc-counts { margin-top: 11px; gap: 8px; }
+  /* a ledger: a narrow label column, the numbers free to run the rest of the width */
+  .dsc-cnt { display: grid; grid-template-columns: 58px minmax(0, 1fr); column-gap: 12px; align-items: start; }
+  .dsc-cnt > .dsc-l { grid-row: 1 / span 2; padding-top: 2px; line-height: 1.32; }
+  .dsc-n { font-size: 14px; line-height: 1.25; margin-top: 1px; letter-spacing: 0; }
+  .dsc-cs { font-size: 9.5px; line-height: 1.35; margin-top: 0; }
+  .dsc-nrow { gap: 10px; margin-top: 1px; }
+  .dsc-atom { margin-top: 10px; font-size: 15px; line-height: 1.3; min-height: 3.9em; }
+  .dsc-atom-l { font-size: 9px; }
+  .dsc-side { margin-top: 10px; }
   .dsc-ros { grid-template-columns: 1fr 1fr; gap: 10px; }
   .dsc-l, .dsc-inv-h { font-size: 9.5px; }
-  .dsc-v { font-size: 12.5px; }
+  .dsc-v { font-size: 11.5px; line-height: 1.3; margin-top: 1px; }
   .dsc-v small { font-size: 10px; }
   .dsc-inv { margin-top: 10px; }
   .dsc-inv-h { display: flex; align-items: center; gap: 10px; }
@@ -344,10 +514,11 @@ footer a { color: var(--dim); }
   .dsc-pips i { display: block; width: 7px; height: 7px; border: 1px solid var(--bone); background: var(--bone); }
   .dsc-pips i.dsc-gone { background: transparent; border-color: #4a4d57; }
   .dsc-lost { display: block; font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--dim); margin-top: 3px; white-space: nowrap; }
-  .dsc-ctl { margin-top: 10px; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 10px; }
-  .dsc-proton { order: 2; }
-  .dsc-proton .ctl-label { font-size: 9.5px; margin-bottom: 4px; text-align: right; margin-right: 0; }
-  .dsc-auto-hud { order: 1; }
+  .dsc-ctl { margin-top: 10px; display: block; }
+  .dsc-proton { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .dsc-proton .ctl-label { font-size: 9.5px; margin: 0; }
+  /* the HUD's own Descend button sits level with the clock, at the right */
+  .dsc-auto-hud { position: absolute; top: -3px; right: 0; }
   .dsc-hud .seg button, .dsc-auto-hud { font-size: 11.5px; padding: 8px 9px; }
   .dsc-rail { right: 4px; width: 46px; bottom: 76px; }
   .dsc-rl, .dsc-rd { right: 10px; }
@@ -367,12 +538,18 @@ footer a { color: var(--dim); }
 }
 @media (max-width: 380px) {
   .dsc-hud .seg button, .dsc-auto-hud { padding: 8px 7px; font-size: 11px; }
+  .dsc-cnt { column-gap: 9px; }
+  .dsc-n { font-size: 12.5px; }
+  .dsc-cs { font-size: 9px; }
+  .dsc-sub { font-size: 10px; }
 }
 /* short phones: a tighter HUD leaves room for the captions */
 @media (max-width: 760px) and (max-height: 720px) {
   .dsc-top { top: 8px; }
   .dsc-clock { font-size: 27px; }
-  .dsc-sub { margin-top: 2px; line-height: 1.4; }
+  .dsc-sub { margin-top: 9px; line-height: 1.4; } /* clears the Descend button beside the clock */
+  .dsc-counts { margin-top: 8px; gap: 6px; }
+  .dsc-atom { margin-top: 8px; font-size: 14px; }
   .dsc-side { margin-top: 8px; }
   .dsc-ros .dsc-v { margin-top: 0; }
   .dsc-inv { margin-top: 6px; }
@@ -398,6 +575,7 @@ footer a { color: var(--dim); }
     <div class="prose">
       <p>These 360 particles start packed into one corner. The rules they follow run the same forward and backward, and no force drives them outward. They spread because there are incomparably more ways to be spread out than to stay in the corner, and their motion wanders through arrangements without preference. It ends up where almost all the arrangements are.</p>
       <p>Watch the energy and the work. The energy never changes. The work it could do drains away.</p>
+      <p class="note">Four short experiments come first, then the universe. <a href="#inventory">Skip to the universe</a>.</p>
     </div>
   </div>
 
@@ -545,8 +723,82 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
+</div><!-- /.wrap -->
+
+<!-- ================= 05 WHAT THERE IS ================= -->
+<div class="wrap">
+<section class="sec inv-intro" id="inventory">
+  <div class="eq"><span class="n">05</span><span class="f">1 → 10<sup>23</sup></span></div>
+  <h2>What there is.</h2>
+  <div class="prose">
+    <p>Before watching it run down, look at how much there is. Below this line, scrolling pulls the view back from the Sun, a factor of ten at a time, until everything that can be seen is on the screen.</p>
+    <p>Numbers this large do not register by being read. So for part of the way you will be asked to count.</p>
+  </div>
+  <p class="inv-skip"><a href="#heat-death">Skip to the descent</a></p>
+</section>
+</div>
+
+<div class="inv" id="invTrack">
+  <div class="inv-stage" id="invStage">
+    <canvas id="invSky" role="img" aria-label="A view centred on the Sun that widens as you scroll, from the planets out to the whole observable universe"></canvas>
+    <div class="inv-hud">
+      <div class="inv-top" id="invTop">
+        <div class="inv-scalebox" id="invScalebox">
+          <div class="inv-l">Width of view</div>
+          <div class="inv-scale" id="invScale">26 light-minutes</div>
+          <div class="inv-name" id="invName">The Sun and its planets</div>
+        </div>
+        <div class="inv-side" id="invSide">
+          <div class="inv-ros">
+            <div class="inv-ro"><div class="inv-l">Stars in view <small>approx.</small></div><div class="inv-v" id="invStars">1</div></div>
+            <div class="inv-ro"><div class="inv-l">Counting them, one per second</div><div class="inv-v" id="invCount">1 second</div></div>
+            <div class="inv-ro"><div class="inv-l">Voyager 1 would cross this in</div><div class="inv-v" id="invVoy">320 days</div></div>
+          </div>
+          <div class="inv-dot" id="invDot">One dot = 1 star</div>
+        </div>
+      </div>
+      <div class="inv-pan" id="invPan">
+        <div class="inv-pan-n">Stars passed: <b id="invPassed">0</b> of 200,000,000,000</div>
+        <div class="inv-pace" id="invPace">Keep scrolling.</div>
+      </div>
+      <div class="inv-bar" id="invBar" aria-hidden="true">
+        <div class="inv-bar-l" id="invBarL">10 light-minutes</div>
+        <div class="inv-bar-track"><i class="inv-bar-t0"></i><i class="inv-bar-line" id="invBarLine"></i><i class="inv-bar-t1" id="invBarT1"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inv-cards" id="invCards">
+    <div class="inv-card" data-s="0.15"><div class="inv-where">The Sun</div><p>Start with what we can reach. Sunlight takes eight minutes to get from the Sun to you.</p></div>
+    <div class="inv-card" data-s="0.95"><div class="inv-where">One light-day</div><p>Voyager 1 left Earth in 1977. It is the farthest thing humans have ever made. On 18 November 2026, after 49 years of travel, it reached one light-day from home.</p></div>
+    <div class="inv-card" data-s="1.9"><div class="inv-where">The gap</div><p>Keep going. The nearest star is 4.2 light-years away. At Voyager's speed the trip takes about 75,000 years. Everything in between is empty.</p></div>
+    <div class="inv-card" data-s="2.95"><div class="inv-where">One dot, one star</div><p>Now every dot is one star, and most stars have planets. Scroll, and count how many you can get through.</p></div>
+    <div class="inv-card inv-voice" data-s="4.55"><p>You can stop. This galaxy has about two hundred billion of them.</p></div>
+    <div class="inv-card" data-s="5.5"><div class="inv-where">Pulling back</div><p>Everything you just scrolled past is closing into a single point.</p></div>
+    <div class="inv-card" data-s="6.9"><div class="inv-where">The Milky Way</div><p>Our galaxy: 100 to 400 billion stars in a disk about 100,000 light-years across. The Sun takes 230 million years to go around it once and has made about twenty trips.</p></div>
+    <div class="inv-card" data-s="8.15"><div class="inv-where">The Local Group</div><p>Andromeda, the nearest large galaxy, is 2.5 million light-years away. The light you would see from it tonight left before our species existed. Three large galaxies and about fifty small ones share ten million light-years.</p></div>
+    <div class="inv-card" data-s="9.45"><div class="inv-where">Laniakea</div><p>Our supercluster: about 100,000 galaxies in streams 520 million light-years long. Light takes about as long to cross it as complex animals have existed on Earth.</p></div>
+    <div class="inv-card" data-s="10.9"><div class="inv-where">The cosmic web</div><p>Pull back again and superclusters are threads. Galaxies gather along filaments and walls, around voids tens to hundreds of millions of light-years wide.</p></div>
+    <div class="inv-card" data-s="11.9"><div class="inv-where">Everything in view</div><p>The observable universe: a sphere 93 billion light-years across, holding somewhere between 200 billion and 2 trillion galaxies. There is more beyond the edge. Nobody knows how much.</p></div>
+  </div>
+</div>
+
+<div class="wrap">
+<section class="sec inv-outro">
+  <p class="inv-big">200,<wbr>000,<wbr>000,<wbr>000,<wbr>000,<wbr>000,<wbr>000,<wbr>000</p>
+  <p class="kicker inv-kick">stars, give or take a factor of ten</p>
+  <div class="prose">
+    <p>Counting them at one per second would take 460,000 times the present age of the universe. Most of them have planets. All of it, every dot on every screen you just passed, is running on the same loan as the box of gas at the top of this page.</p>
+  </div>
+  <div class="scaled"><div class="tag">Next</div><p>Where all of that keeps its entropy, and then what happens to it.</p></div>
+</section>
+</div>
+
+
+<div class="wrap">
+
 <section class="sec" id="ledger">
-  <div class="eq"><span class="n">05</span><span class="f">S = k A / 4ℓ<sub>P</sub><sup>2</sup></span></div>
+  <div class="eq"><span class="n">06</span><span class="f">S = k A / 4ℓ<sub>P</sub><sup>2</sup></span></div>
   <h2>Where the entropy is.</h2>
   <div class="prose">
     <p>Add up the entropy of everything in the observable universe and the stars barely register. Nearly all of it sits in black holes.</p>
@@ -606,13 +858,13 @@ footer a { color: var(--dim); }
 
 </div><!-- /.wrap -->
 
-<!-- ================= 06 THE DESCENT ================= -->
+<!-- ================= 07 THE DESCENT ================= -->
 <div class="wrap">
 <section class="sec dsc-intro" id="heat-death">
-  <div class="eq"><span class="n">06</span><span class="f">t → ∞</span></div>
+  <div class="eq"><span class="n">07</span><span class="f">t → ∞</span></div>
   <h2>The descent.</h2>
   <div class="prose">
-    <p>Everything so far has been mechanism. This is where it leads. Below this line, scrolling moves time forward, and the ruler on the right is logarithmic: each mark is ten times later than the one before. The picture is our own neighbourhood of the universe.</p>
+    <p>You have seen the mechanism, and you have seen how much there is. This is what happens to it. Below this line, scrolling moves time forward, and the ruler on the right is logarithmic: each mark is ten times later than the one before. The picture is our own neighbourhood of the universe.</p>
     <p>It takes a while. Most of it is dark. That is the accurate proportion, and even so it is compressed: at the pace of the first screens, the whole descent would run more than four times as long.</p>
   </div>
   <div class="controls dsc-start">
@@ -630,7 +882,19 @@ footer a { color: var(--dim); }
       <div class="dsc-top" id="dscTop">
         <div class="dsc-clockbox" id="dscClockbox">
           <div class="dsc-clock" id="dscClock">13.8 billion years</div>
-          <div class="dsc-sub"><span id="dscEra">Stelliferous era</span><span id="dscRatio" class="dsc-ratio">&nbsp;</span></div>
+          <div class="dsc-sub"><span id="dscEra">Stelliferous era</span><span id="dscRatio" class="dsc-ratio"></span></div>
+          <div class="dsc-counts">
+            <div class="dsc-cnt">
+              <div class="dsc-l">Stars shining</div>
+              <div class="dsc-n" id="dscStars">200,000,000,000,000,000,000,000</div>
+              <div class="dsc-cs">in what was the observable universe · estimate</div>
+            </div>
+            <div class="dsc-cnt dsc-cnt-g">
+              <div class="dsc-l">Galaxies in view</div>
+              <div class="dsc-nrow"><span class="dsc-n" id="dscGals">2,000,000,000,000</span><span class="dsc-cs" id="dscGalsNote">upper estimate</span></div>
+            </div>
+          </div>
+          <p class="dsc-atom"><span class="dsc-atom-l">Your atom</span> <span id="dscAtom">A carbon atom in your left hand. It was forged in a star that died before the Sun was born.</span></p>
         </div>
         <div class="dsc-side" id="dscSide">
           <div class="dsc-ros">
@@ -656,7 +920,7 @@ footer a { color: var(--dim); }
   </div>
 
   <div class="dsc-cards" id="dscCards">
-    <div class="dsc-card" data-u="10.14"><div class="dsc-when">Now · 13.8 billion years</div><p>Hundreds of billions of stars in this galaxy, and hundreds of billions of other galaxies in view. This is about as bright as it gets.</p></div>
+    <div class="dsc-card" data-u="10.14"><div class="dsc-when">Now · 13.8 billion years</div><p>Two hundred sextillion stars, in as many as two trillion galaxies. This is about as bright as it gets.</p></div>
     <div class="dsc-card" data-u="10.18"><div class="dsc-when">In about a billion years</div><p>The Sun, slowly brightening, has boiled away Earth's oceans.</p></div>
     <div class="dsc-card" data-u="10.33"><div class="dsc-when">In about 8 billion years</div><p>The Sun has swollen into a red giant, shed its outer layers, and shrunk to a white dwarf the size of Earth.</p></div>
     <div class="dsc-card" data-u="10.55"><div class="dsc-when">Tens of billions of years</div><p>The Milky Way and Andromeda have roughly even odds of merging within ten billion years. Given longer, the galaxies of our Local Group are expected to settle into one.</p></div>
@@ -678,10 +942,13 @@ footer a { color: var(--dim); }
     <div class="dsc-card dsc-branch" data-u="39.5" data-branch="d"><div class="dsc-when">10<sup>40</sup> years</div><p>Ordinary matter is gone. Every atom that ever existed has dissolved into radiation and lighter particles. Atoms turn out to have been a phase.</p></div>
     <div class="dsc-card dsc-branch" data-u="39.5" data-branch="l" hidden><div class="dsc-when">10<sup>40</sup> years</div><p>Matter is still out there, and will be for a very long time. It no longer does anything.</p></div>
     <div class="dsc-card" data-u="41.0"><div class="dsc-when">10<sup>41</sup> years</div><p>The black hole era. Black holes are the last large reservoirs of anything, and they leak. Each one loses mass as faint radiation, slower the bigger it is.</p></div>
-    <div class="dsc-card dsc-voice" data-u="46.0"><p>Each factor of ten lasts nine times longer than all the time before it put together.</p></div>
+    <div class="dsc-card" data-u="44.0"><div class="dsc-when">10<sup>44</sup> years</div><p>Could anything still be alive? In 1979 Freeman Dyson argued that a mind could last forever on a finite store of energy, by thinking ever more slowly and sleeping in between.</p></div>
+    <div class="dsc-card" data-u="48.5"><div class="dsc-when">10<sup>48</sup> years</div><p>Twenty years later Lawrence Krauss and Glenn Starkman answered that an accelerating universe closes that door. The horizon's faint glow sets a temperature nothing can cool below, every erased memory costs heat, and the energy within reach is finite. If thinking is a kind of computing, there is a last thought. Others dispute the argument, and the question is not settled.</p></div>
+    <div class="dsc-card dsc-voice" data-u="53.0"><p>Each factor of ten lasts nine times longer than all the time before it put together.</p></div>
     <div class="dsc-card dsc-voice" data-u="59.0"><p>Halfway down the ruler. In years, everything above this line adds up to 10<sup>−41</sup> of the way to the last black holes.</p></div>
-    <div class="dsc-card dsc-voice" data-u="62.0"><p>No event is known for this stretch.</p></div>
+    <div class="dsc-card dsc-voice" data-u="64.0"><p>No event is known for this stretch.</p></div>
     <div class="dsc-card" data-u="68.0"><div class="dsc-when">10<sup>67</sup> to 10<sup>70</sup> years</div><p>Somewhere beyond the horizon, the black holes left by dead stars are finishing. Each ends in a flash: its last second releases the energy of about five million megatons of TNT as gamma rays. No light from any of them will ever arrive here.</p></div>
+    <div class="dsc-card dsc-voice" data-u="72.0"><p>Drawn to true scale instead of this ruler, with 10<sup>100</sup> years stretched across the whole observable universe, the entire age of starlight would be about a trillion trillion times shorter than the smallest length physics can describe.</p></div>
     <div class="dsc-card dsc-voice" data-u="78.0"><p>Still the same black hole. Still leaking.</p></div>
     <div class="dsc-card" data-u="87.0"><div class="dsc-when">10<sup>87</sup> years</div><p>A black hole with the mass of the one at our galaxy's centre today, four million Suns, would evaporate about now. Ours has swallowed far more than that, so it lasts longer.</p></div>
     <div class="dsc-card" data-u="93.9"><div class="dsc-when">Perhaps 10<sup>93</sup> years</div><p>The black hole that was the centre of our galaxy shrinks, heats, and goes. For a moment it is hotter than any star ever was.</p></div>
@@ -705,17 +972,37 @@ footer a { color: var(--dim); }
 
 <div class="wrap">
 
-<!-- ================= AFTER ================= -->
 <section class="sec" id="after">
-  <div class="eq"><span class="n">07</span><span class="f">t<sub>return</sub> ~ e<sup>S</sup></span></div>
+  <div class="eq"><span class="n">08</span><span class="f">P ~ e<sup>−ΔS/k</sup></span></div>
   <h2>After the end.</h2>
   <div class="prose">
-    <p>Heat death is a condition with no scheduled end, and three things about it are still open.</p>
-    <p>It may not be final. A finite system that runs forever eventually revisits its own past, the way the entropy in the first box sometimes dips. That box would need about 10<sup>209</sup> years to refill its corner by chance. If the far future behaves like a finite thermal system, the same arithmetic applies to everything: in roughly 10<sup>10<sup>50</sup></sup> years a single brain, complete with false memories, could assemble out of the vacuum, and in something like 10<sup>10<sup>122</sup></sup> years any arrangement at all could briefly recur. Other physicists argue that empty space settles into a perfectly still state in which no such fluctuation ever happens. Nobody knows which is right.</p>
-    <p>Matter may outlast the black holes. If protons never decay, the dead stars are still out there when the last black hole goes. Over about 10<sup>1500</sup> years, quantum tunnelling would slowly turn each one into a ball of iron, and over spans that need a second exponent to write, even those would collapse.</p>
-    <p>And dark energy may not hold steady. Every date in the descent assumes it stays constant, which is the standard model of cosmology. Since 2024, galaxy surveys have hinted that it may be weakening. If that holds up, the far end of this story changes.</p>
+    <p>The second law is a statement about odds, and long odds still pay out if you wait. Entropy can fall by chance. It just gets absurdly unlikely as the numbers grow. You can watch it happen.</p>
+  </div>
+
+  <div class="inst aft-inst">
+    <div class="box aft-box"><canvas id="aftCanvas" aria-label="A box of a few particles moving freely, occasionally all found in the left half at once"></canvas></div>
+    <div class="controls">
+      <span><span class="ctl-label" id="aftNLabel">Particles</span><span class="seg" id="aftN" role="group" aria-labelledby="aftNLabel">
+        <button type="button" data-n="4">4</button><button type="button" data-n="8" aria-pressed="true">8</button><button type="button" data-n="16">16</button><button type="button" data-n="24">24</button>
+      </span></span>
+      <button id="aftRestart" type="button">Restart</button>
+    </div>
+    <div class="readouts">
+      <div class="ro"><div class="l">Odds at any instant</div><div class="v" id="aftOdds">1 in 256</div></div>
+      <div class="ro"><div class="l">Box time elapsed</div><div class="v" id="aftTime">0.0 seconds</div></div>
+      <div class="ro"><div class="l">Times it has un-mixed</div><div class="v" id="aftCount">0</div></div>
+      <div class="ro"><div class="l">Average wait so far</div><div class="v" id="aftAvg">not yet</div></div>
+    </div>
+    <p class="note" style="margin-top:14px">These particles pass through one another, which makes the box quick to run and changes nothing about the odds: each particle spends half its time on the left, so all of them are there together one instant in 2<sup>N</sup>. With 24 you would be here a long while. With 100, the wait is already far longer than the universe has existed.</p>
+  </div>
+
+  <div class="prose">
+    <p>Add particles and the wait runs away from you. For the 360 in the box at the top of this page it is about 10<sup>209</sup> years. Nothing in physics puts a wall anywhere on this ladder. If the far future really is a warm bath that lasts forever, then in about 10<sup>10<sup>50</sup></sup> years the vacuum assembles a single brain, complete with the memories of a life, and in about 10<sup>10<sup>122</sup></sup> years it has tried every arrangement there is.</p>
+    <p>That has an uncomfortable consequence. Accidents like that would vastly outnumber ordinary observers, and a fluctuated brain holding your exact memories, including the memory of scrolling down this page, could not tell the difference from inside. Most physicists take this as a sign that something in the argument is wrong. Some have shown how empty space might settle into a state where nothing fluctuates at all. The question is open.</p>
+    <p>Two other things could change the ending. If protons never decay, dead stars outlast the black holes and slowly turn to iron over about 10<sup>1500</sup> years. And every date in the descent assumes dark energy holds steady. Since 2024, galaxy surveys have hinted that it may be weakening.</p>
   </div>
 </section>
+
 
 <!-- ================= CODA ================= -->
 <section class="sec coda">
@@ -727,9 +1014,18 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
+<section class="sec aft-end">
+  <div class="eq"><span class="n">∞ + 1</span><span class="f">wait</span></div>
+  <h2>There is one more thing you can do.</h2>
+  <div class="prose"><p>Nothing. For long enough.</p></div>
+  <div class="controls"><button id="aftWait" class="primary" type="button">Wait</button></div>
+  <p class="note">What happens next follows a 2004 proposal by Sean Carroll and Jennifer Chen. It is speculation, and it is labelled as such.</p>
+</section>
+
+
 <footer>
   <p>Built after Daniel Temkin's <a href="https://entropy-lang.org/">Entropy</a> (2010), a programming language in which data decays as it is used. The gas uses bit-reversible molecular dynamics after Levesque &amp; Verlet (1993): soft disks, integer positions, forces rounded pair by pair so every step can be undone exactly.</p>
-  <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Iron stars: Dyson, “Time Without End” (1979). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
+  <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Scale of the universe: Voyager 1's distance from NASA; Laniakea from Tully et al. (2014); galaxy counts from Conselice et al. (2016), whose two trillion is an upper estimate. Whether thought can last forever: Dyson, “Time Without End” (1979), and Krauss &amp; Starkman, <a href="https://arxiv.org/abs/astro-ph/9902189">“Life, the Universe, and Nothing”</a> (1999). Iron stars: Dyson (1979). A new beginning from empty space: Carroll &amp; Chen (2004). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
   <p>Sky temperature and stretch assume flat ΛCDM with H<sub>0</sub> = 67.7 km/s/Mpc, Ω<sub>m</sub> = 0.31 and constant dark energy; the horizon temperature is the Gibbons–Hawking value, about 2 × 10<sup>−30</sup> K. Black hole figures are for non-rotating holes emitting only light. Proton decay has never been observed, and the lower limit on the proton's lifetime is about 10<sup>34</sup> years; the descent shows both branches. The lifetime of our galaxy's central black hole depends on how much it swallows first and is uncertain by several factors of ten.</p>
   <p>The star field is an illustrative sample with realistic proportions of red dwarfs, Sun-like stars and massive stars. The counter at the bottom of the screen assumes a resting metabolism of about 100 W released as heat into a 20 °C room.</p>
 </footer>
@@ -1037,6 +1333,7 @@ const hero = (() => {
   if (!running) $('heroPlay').textContent = 'Play';
   watch(cv);
   restart();
+  window.ENT.restartHero = () => { restart(); if (!running && !reduced) { running = true; $('heroPlay').textContent = 'Pause'; } };
   return { tick, draw };
 })();
 
@@ -1325,6 +1622,835 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 <script>
 (() => {
 'use strict';
+const ENT = window.ENT;
+const { $, reduced, mulberry32, blackbody, fit } = ENT;
+const track = $('invTrack');
+if (!track) return;
+const cv = $('invSky'), ctx = cv.getContext('2d');
+const stage = $('invStage');
+const phoneMQ = window.matchMedia('(max-width: 760px)');
+
+const TAU = Math.PI * 2;
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const smooth = (x) => { x = clamp01(x); return x * x * (3 - 2 * x); };
+const band = (z, a, b, c, e) => smooth((z - a) / (b - a)) * (1 - smooth((z - c) / (e - c))); // fade in a→b, out c→e
+const rad = (deg) => (deg * Math.PI) / 180;
+const dir = (deg) => [Math.cos(rad(deg)), Math.sin(rad(deg))];
+
+/* ---------------- units (light-years) and the facts the picture is drawn from ---------------- */
+const LMIN = 1 / 525960, LHOUR = 1 / 8766, LDAY = 1 / 365.25, YEAR_S = 31557600;
+const R_EARTH = 8.3 * LMIN, R_NEP = 4.2 * LHOUR, R_VOY = LDAY, D_ACEN = 4.3;
+const R_GC = 27000, R_MW = 50000, D_M31 = 2.5e6, R_OBS = 46.5e9, LAN_LEN = 520e6;
+const VOY_LY_PER_YEAR = 5.67e-5, AGE = 13.8e9;
+
+/* ---------------- scroll -> zoom ---------------- */
+// z = log10(width of view in light-years) across the shorter side of the canvas.
+// The table's knots, except that phase D reaches the full galaxy a little early and then drifts to z = 5.3 (the hold).
+const KS = [0, 1.4, 2.8, 5.0, 6.2, 6.85, 7.6, 8.8, 10.2, 11.8, 12.6];
+const KZ = [-4.3, -2.2, 2.0, 2.0, 3.6, 5.15, 5.3, 7.2, 9.0, 11.05, 11.05];
+const SMAX = 12.6;
+function s2z(s) {
+  if (s <= 0) return KZ[0];
+  for (let i = 1; i < KS.length; i++) if (s <= KS[i]) return KZ[i - 1] + ((s - KS[i - 1]) / (KS[i] - KS[i - 1])) * (KZ[i] - KZ[i - 1]);
+  return KZ[KZ.length - 1];
+}
+const phaseOf = (s) => (s < 1.4 ? 0 : s < 2.8 ? 1 : s < 5 ? 2 : s < 6.2 ? 3 : s < 7.6 ? 4 : s < 8.8 ? 5 : s < 10.2 ? 6 : 7);
+const NAMES = ['The Sun and its planets', 'Between the stars', "The Sun's neighbourhood", "The Sun's neighbourhood", 'The Milky Way', 'The Local Group', 'Laniakea', 'The observable universe'];
+
+/* ---------------- numbers ---------------- */
+const SK = [[-4.3, 1], [0.5, 1], [1.0, 4], [1.3, 12], [2, 2000], [3, 2e6], [3.6, 5e7], [5.0, 2e11], [5.3, 2e11], [7.0, 1.5e12], [9.0, 1e16], [11.05, 2e23]];
+function starsInView(z) {
+  if (z <= SK[0][0]) return 1;
+  for (let i = 1; i < SK.length; i++) {
+    if (z <= SK[i][0]) {
+      const t = (z - SK[i - 1][0]) / (SK[i][0] - SK[i - 1][0]);
+      return Math.pow(10, Math.log10(SK[i - 1][1]) + t * (Math.log10(SK[i][1]) - Math.log10(SK[i - 1][1])));
+    }
+  }
+  return SK[SK.length - 1][1];
+}
+const commas = (str) => str.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+function sigInt(v, sf) { // v >= 10^(sf-1): digits with zeros, exact as a string
+  let e = Math.floor(Math.log10(v)), m = Math.round(v / Math.pow(10, e - sf + 1));
+  if (m >= Math.pow(10, sf)) { m = Math.round(m / 10); e++; }
+  return commas(String(m) + '0'.repeat(Math.max(0, e - sf + 1)));
+}
+function sig(v, sf = 2) {
+  if (v >= Math.pow(10, sf - 1)) return sigInt(v, sf);
+  return v.toPrecision(sf);
+}
+const num = (str) => Number(str.replace(/,/g, ''));
+function unit(v, name) {
+  const t = v < 10 && Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : sig(v);
+  return `${t} ${name}${t === '1' ? '' : 's'}`;
+}
+function scaled(v, units) { // units: [[divisor, word], ...] ascending
+  for (let i = 0; i < units.length; i++) {
+    const x = v / units[i][0], t = sig(x);
+    if (num(t) < 1000 || i === units.length - 1) return `${t} ${units[i][1]}`;
+  }
+  return '';
+}
+function widthText(W) {
+  if (W < LHOUR && sig(W / LMIN) !== '60') return unit(W / LMIN, 'light-minute');
+  if (W < 2 * LDAY && num(sig(W / LHOUR)) < 48) return unit(Math.max(1, W / LHOUR), 'light-hour');
+  if (W < 0.1 && num(sig(W / LDAY)) < 36.5) return unit(W / LDAY, 'light-day');
+  if (num(sig(W)) < 1000) return unit(W, 'light-year');
+  return scaled(W, [[1e3, 'thousand light-years'], [1e6, 'million light-years'], [1e9, 'billion light-years']]);
+}
+function durText(sec, voyager) {
+  if (sec < 59.5) return unit(sec, 'second');
+  if (sec < 3570) return unit(sec / 60, 'minute');
+  if (sec < 86400 * 0.995) return unit(sec / 3600, 'hour');
+  if (sec < YEAR_S * 0.995) return unit(sec / 86400, 'day');
+  const y = sec / YEAR_S;
+  if (num(sig(y)) < 1e6) return unit(y, 'year');
+  if (voyager) return scaled(y, [[1e6, 'million years'], [1e9, 'billion years'], [1e12, 'trillion years'], [1e15, 'quadrillion years']]);
+  if (y <= AGE) return scaled(y, [[1e6, 'million years'], [1e9, 'billion years']]);
+  return `${sig(y / AGE)} × the age of the universe`;
+}
+function countWords(v, sf) { // "30 million", "25", "13,000"
+  if (v >= 1e9 * 0.9995) return `${sig(v / 1e9, sf)} billion`;
+  if (v >= 1e6 * 0.9995) return `${sig(v / 1e6, sf)} million`;
+  return v >= 10 ? sig(v, sf) : String(Math.round(v));
+}
+
+/* ---------------- colours ---------------- */
+const TEMPS = [2900, 3300, 3800, 4400, 5000, 5600, 6300, 7500, 9500, 13000];
+const COLS = TEMPS.map((T) => `rgb(${blackbody(T).join(',')})`);
+const tIndex = (T) => { let b = 0; for (let i = 1; i < TEMPS.length; i++) if (Math.abs(TEMPS[i] - T) < Math.abs(TEMPS[b] - T)) b = i; return b; };
+const BONE = '235,229,217', WARM = blackbody(4300).join(','), SUNC = blackbody(5800).join(','), CMB = blackbody(2600).join(',');
+const EMBER = ENT.C.ember || '#ff8a4a';
+
+/* ---------------- dot batching: one fill per (colour, alpha level, size) ---------------- */
+const NAL = 16, NSZ = 3;
+const BUCK = []; for (let i = 0; i < TEMPS.length * NAL * NSZ; i++) BUCK.push([]);
+const used = [];
+let SZ = [1, 1.5, 2.2], nDots = 0;
+function dot(ci, a, si, x, y) {
+  let al = Math.round(a * (NAL - 1));
+  if (al <= 0) return;
+  if (al > NAL - 1) al = NAL - 1;
+  const k = (ci * NAL + al) * NSZ + si, b = BUCK[k];
+  if (b.length === 0) used.push(k);
+  b.push(x, y); nDots++;
+}
+function flush() {
+  for (const k of used) {
+    const b = BUCK[k], si = k % NSZ, al = Math.floor(k / NSZ) % NAL, ci = Math.floor(k / (NSZ * NAL)), s = SZ[si], h = s / 2;
+    ctx.globalAlpha = al / (NAL - 1); ctx.fillStyle = COLS[ci]; ctx.beginPath();
+    for (let i = 0; i < b.length; i += 2) ctx.rect(Math.round(b[i] - h), Math.round(b[i + 1] - h), s, s);
+    ctx.fill(); b.length = 0;
+  }
+  used.length = 0; ctx.globalAlpha = 1;
+}
+
+/* ---------------- hashing for the endless fill field and the web lattice ---------------- */
+function hash(a, b, c) {
+  let h = (Math.imul(a | 0, 0x27d4eb2d) ^ Math.imul((b | 0) + 0x632be5ab, 0x165667b1) ^ Math.imul((c | 0) + 0x5bd1e995, 0x9e3779b1)) | 0;
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+
+/* ---------------- layout-dependent world ---------------- */
+// Directions are screen angles in degrees (0 = right, 90 = down), chosen per screen shape so that
+// every object lands in free sky: right of the captions on wide screens, above/below centre on phones.
+const V_WIDE = { voy: -14, acen: 16, gc: -6, m31: -24, tri: 40, ga: 6, virgo: 32, lab: -1 };
+const V_TALL = { voy: 80, acen: 62, gc: -96, m31: 88, tri: 30, ga: 84, virgo: -35, lab: 1 };
+let V = V_WIDE;
+let Wd = 1, Hd = 1, D = 1, CW = 1, CH = 1, SMIN = 1, FX = 0, FY = 0;
+let sc = 1, camX = 0, camY = 0;
+let field = null, galaxy = null, lg = null, lan = null, web = null, sprite = null, anchors = null;
+let fieldKey = '', worldKey = '';
+
+function genField() {
+  const S = Math.min(CW, CH), Wv = (100 * CW) / S, Hv = (100 * CH) / S, asp = Math.max(CW, CH) / S;
+  const fx = FX / Wd, fy = FY / Hd;
+  const xL = -fx * Wv, xR = (1 - fx) * Wv, yT = -fy * Hv;
+  const Ptot = 6.6 * Wv, rho = 2000 / (Wv * Hv), Dh = 50 / asp;
+  const rnd = mulberry32(9001);
+  const LAY = [[1, 0.22, 1, 0], [0.8, 0.33, 0.85, 0], [0.62, 0.45, 0.68, 0]];
+  const ac = dir(V.acen), margins = [];
+  const pack = (f, pts, counted) => {
+    pts.sort((p, q) => p[0] - q[0]);
+    const N = pts.length, L = { f, counted, n: N, x: new Float64Array(N), y: new Float64Array(N), d: new Float32Array(N), c: new Uint8Array(N), a: new Float32Array(N), s: new Uint8Array(N), ph: new Float32Array(N), sp: new Float32Array(N) };
+    pts.forEach((p, i) => { L.x[i] = p[0]; L.y[i] = p[1]; L.d[i] = p[2]; L.c[i] = p[3]; L.a[i] = p[4]; L.s[i] = p[5]; L.ph[i] = p[6]; L.sp[i] = p[7]; });
+    return L;
+  };
+  const layers = LAY.map(([f, share, bm], li) => {
+    const x0 = xL - 2, x1 = xR + f * Ptot + 2, n = Math.round(rho * share * (x1 - x0) * Hv);
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const x = x0 + rnd() * (x1 - x0), y = yT + rnd() * Hv, dd = (rnd() * 2 - 1) * Dh;
+      const t = rnd(), b = rnd(), ph = rnd() * TAU, sp = 1.2 + rnd() * 2.2;
+      if (x * x + y * y + dd * dd < 4.6 * 4.6) continue;
+      let T, a, si;
+      if (t < 0.72) { T = 2900 + b * 900; a = 0.3 + b * 0.25; si = 0; }
+      else if (t < 0.94) { T = 4500 + b * 1800; a = 0.55 + b * 0.35; si = b > 0.75 ? 1 : 0; }
+      else { T = 6800 + b * 7000; a = 0.85 + b * 0.15; si = b > 0.4 ? 2 : 1; }
+      if (li === 2 && si > 0) si--;
+      pts.push([x, y, dd, tIndex(T), a * bm, si, ph, sp]);
+    }
+    // soft margins beyond the panned strip (never in view during the pan, never counted)
+    const mpts = [], mh = 0.6 * Hv, mw = 0.5 * Wv, nm = Math.round(rho * share * (x1 - x0 + 2 * mw) * 2 * mh);
+    for (let i = 0; i < nm; i++) {
+      const x = x0 - mw + rnd() * (x1 - x0 + 2 * mw), up = rnd() < 0.5, e = rnd() * mh, y = up ? yT - e : yT + Hv + e, dd = (rnd() * 2 - 1) * Dh;
+      const ex = x < x0 ? (x0 - x) / mw : x > x1 ? (x - x1) / mw : 0, keep = (1 - e / mh) * (1 - ex);
+      const t = rnd(), b = rnd(), ph = rnd() * TAU, sp = 1.2 + rnd() * 2.2;
+      if (rnd() > keep * keep) continue;
+      const T = t < 0.72 ? 2900 + b * 900 : t < 0.94 ? 4500 + b * 1800 : 6800 + b * 7000, a = t < 0.72 ? 0.3 + b * 0.25 : t < 0.94 ? 0.55 + b * 0.35 : 0.9;
+      mpts.push([x, y, dd, tIndex(T), a * bm, 0, ph, sp]);
+    }
+    const ext = [];
+    for (let i = 0; i < Math.round(rho * share * mw * Hv * 2); i++) { // ragged ends in x
+      const left = rnd() < 0.5, e = rnd() * mw, x = left ? x0 - e : x1 + e, y = yT + rnd() * Hv, t = rnd(), b = rnd();
+      if (rnd() > (1 - e / mw) ** 2) continue;
+      if (left && x * x + y * y < 25) continue;
+      const T = t < 0.72 ? 2900 + b * 900 : t < 0.94 ? 4500 + b * 1800 : 6800 + b * 7000, a = t < 0.72 ? 0.3 + b * 0.25 : t < 0.94 ? 0.55 + b * 0.35 : 0.9;
+      mpts.push([x, y, (rnd() * 2 - 1) * Dh, tIndex(T), a * bm, 0, rnd() * TAU, 1.5]);
+    }
+    margins.push(pack(f, mpts, false));
+    if (li === 0) pts.push([D_ACEN * ac[0], D_ACEN * ac[1], 0.4, tIndex(5600), 1, 2, 0, 1.6]);
+    return pack(f, pts, true);
+  });
+  return { Wv, Hv, asp, xL, Ptot, Dh, layers: layers.concat(margins), counted: layers, acen: [D_ACEN * ac[0], D_ACEN * ac[1]] };
+}
+function lowerBound(arr, n, v) { let lo = 0, hi = n; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; } return lo; }
+function starsPassed(P) {
+  let k = 0;
+  for (const L of field.counted) k += lowerBound(L.x, L.n, field.xL + L.f * P) - lowerBound(L.x, L.n, field.xL);
+  return k;
+}
+
+/* the Milky Way: barred spiral, plane coordinates with the Sun at (-27,000, 0) */
+const G_K = 0.42, G_BAR = rad(150), G_PITCH = 2.9;
+const ARMS = [[G_BAR, 13000, 1], [G_BAR + Math.PI, 13000, 1], [G_BAR + Math.PI / 2, 9000, 0.55], [G_BAR - Math.PI / 2, 9000, 0.55]];
+function armAngle(arm, r) { return arm[0] + Math.log(r / arm[1]) * G_PITCH; }
+function genGalaxy(n) {
+  const rnd = mulberry32(77);
+  const gauss = () => { let a = 0; while (a === 0) a = rnd(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(TAU * rnd()); };
+  const th = rad(V.gc), cs = Math.cos(th), sn = Math.sin(th), gc = [R_GC * cs, R_GC * sn];
+  const x = new Float64Array(n), y = new Float64Array(n), c = new Uint8Array(n), a = new Float32Array(n), s = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const r0 = rnd();
+    let u, v, T, al, si = 0;
+    if (r0 < 0.13) { // bulge
+      const bx = gauss() * 4200, by = gauss() * 2600;
+      u = bx * Math.cos(G_BAR) - by * Math.sin(G_BAR); v = bx * Math.sin(G_BAR) + by * Math.cos(G_BAR);
+      T = 4200 + rnd() * 1300; al = 0.55 + rnd() * 0.4; si = rnd() < 0.15 ? 1 : 0;
+    } else if (r0 < 0.21) { // bar
+      const bx = (rnd() * 2 - 1) * 14000, by = gauss() * 1700;
+      u = bx * Math.cos(G_BAR) - by * Math.sin(G_BAR); v = bx * Math.sin(G_BAR) + by * Math.cos(G_BAR);
+      T = 4600 + rnd() * 1200; al = 0.5 + rnd() * 0.35;
+    } else if (r0 < 0.72) { // arms
+      const arm = ARMS[rnd() < 0.78 ? (rnd() < 0.5 ? 0 : 1) : (rnd() < 0.5 ? 2 : 3)];
+      const r = Math.min(52000, arm[1] + -Math.log(1 - rnd() * 0.97) * 13000 * arm[2]);
+      const ang = armAngle(arm, r) + gauss() * 0.11, rr = r + gauss() * (900 + r * 0.035);
+      u = Math.cos(ang) * rr; v = Math.sin(ang) * rr;
+      const hot = rnd() < 0.62;
+      T = hot ? 7000 + rnd() * 8000 : 4600 + rnd() * 1600; al = hot ? 0.55 + rnd() * 0.45 : 0.35 + rnd() * 0.3; si = hot && rnd() < 0.12 ? 1 : 0;
+    } else { // disk
+      const r = Math.min(54000, 2500 + -Math.log(1 - rnd() * 0.985) * 12500), ang = rnd() * TAU;
+      u = Math.cos(ang) * r; v = Math.sin(ang) * r;
+      T = 4000 + rnd() * 2500; al = 0.25 + rnd() * 0.3;
+    }
+    // plane -> world: the Sun's plane position (-27,000, 0) maps to the origin
+    x[i] = gc[0] + cs * u - sn * G_K * v; y[i] = gc[1] + sn * u + cs * G_K * v;
+    c[i] = tIndex(T); a[i] = al; s[i] = si;
+  }
+  return { n, x, y, c, a, s, gc, th };
+}
+function genSprite() {
+  const N = 512, cvs = document.createElement('canvas'); cvs.width = cvs.height = N;
+  const g = cvs.getContext('2d'), m = N / 120000;
+  g.translate(N / 2, N / 2); g.scale(m, m);
+  let gr = g.createRadialGradient(0, 0, 0, 0, 0, 56000);
+  [[0, 0.5], [0.07, 0.3], [0.2, 0.15], [0.4, 0.07], [0.6, 0.03], [0.85, 0.008], [1, 0]].forEach(([o, k]) => gr.addColorStop(o, `rgba(${WARM},${k})`));
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 56000, 0, TAU); g.fill();
+  const armC = blackbody(9000).join(','), rnd = mulberry32(5);
+  for (const arm of ARMS) {
+    for (let r = arm[1]; r < 50000; r += 700) {
+      const ang = armAngle(arm, r), rr = 2600 + r * 0.05, px = Math.cos(ang) * r, py = Math.sin(ang) * r;
+      const k = 0.09 * arm[2] * (1 - r / 56000) * (0.7 + rnd() * 0.6);
+      gr = g.createRadialGradient(px, py, 0, px, py, rr);
+      gr.addColorStop(0, `rgba(${armC},${k})`); gr.addColorStop(1, `rgba(${armC},0)`);
+      g.fillStyle = gr; g.beginPath(); g.arc(px, py, rr, 0, TAU); g.fill();
+    }
+  }
+  g.save(); g.rotate(G_BAR); g.scale(1.9, 1);
+  gr = g.createRadialGradient(0, 0, 0, 0, 0, 7500);
+  const bc = blackbody(4400).join(',');
+  [[0, 0.95], [0.25, 0.6], [0.6, 0.18], [1, 0]].forEach(([o, k]) => gr.addColorStop(o, `rgba(${bc},${k})`));
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 7500, 0, TAU); g.fill();
+  g.restore();
+  return cvs;
+}
+function genLocalGroup() {
+  const rnd = mulberry32(31);
+  const m = dir(V.m31), m31 = [D_M31 * m[0], D_M31 * m[1]];
+  const t = dir(V.m31 + V.tri), tri = [m31[0] + 0.75e6 * t[0], m31[1] + 0.75e6 * t[1]];
+  const n = 50, x = new Float64Array(n), y = new Float64Array(n), a = new Float32Array(n), c = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const host = i < 25 ? galaxy.gc : m31;
+    const r = Math.pow(10, Math.log10(6e4) + rnd() * (Math.log10(1.1e6) - Math.log10(6e4))) * Math.sqrt(1 - Math.pow(rnd(), 2));
+    const ang = rnd() * TAU;
+    x[i] = host[0] + Math.cos(ang) * r; y[i] = host[1] + Math.sin(ang) * r;
+    a[i] = 0.4 + rnd() * 0.4; c[i] = tIndex(5000 + rnd() * 2000);
+  }
+  return { m31, tri, n, x, y, a, c, centre: [m31[0] * 0.5, m31[1] * 0.5] };
+}
+function genLaniakea(n) {
+  const rnd = mulberry32(4242);
+  const gauss = () => { let a = 0; while (a === 0) a = rnd(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(TAU * rnd()); };
+  const ax = dir(V.ga), ay = [-ax[1], ax[0]];
+  const ga = [2.2e8 * ax[0], 2.2e8 * ax[1]], vd = dir(V.virgo), virgo = [5.5e7 * vd[0], 5.5e7 * vd[1]];
+  const C0 = [ga[0] * 0.5, ga[1] * 0.5];
+  const P = (a, b) => [C0[0] + a * ax[0] + b * ay[0], C0[1] + a * ax[1] + b * ay[1]];
+  const streams = [[P(-1.55e8, 0.25e8), virgo, ga]];
+  for (let k = 0; k < 11; k++) {
+    const al = (k / 11) * TAU + rnd() * 0.4, st = P(Math.cos(al) * 2.6e8, Math.sin(al) * 1.6e8);
+    const mid = [(st[0] + ga[0]) / 2, (st[1] + ga[1]) / 2], ox = -(ga[1] - st[1]), oy = ga[0] - st[0], ol = Math.hypot(ox, oy) || 1, bend = (rnd() - 0.5) * 0.7;
+    streams.push([st, [mid[0] + (ox / ol) * bend * 1e8, mid[1] + (oy / ol) * bend * 1e8], ga]);
+  }
+  const x = new Float64Array(n), y = new Float64Array(n), a = new Float32Array(n), c = new Uint8Array(n), s = new Uint8Array(n);
+  let i = 0;
+  while (i < n) {
+    const r0 = rnd(); let px, py;
+    if (r0 < 0.13) { px = ga[0] + gauss() * 1.5e7; py = ga[1] + gauss() * 1.5e7; }
+    else if (r0 < 0.19) { px = virgo[0] + gauss() * 0.6e7; py = virgo[1] + gauss() * 0.6e7; }
+    else if (r0 < 0.9) {
+      const st = streams[rnd() < 0.16 ? 0 : 1 + Math.floor(rnd() * 11)], t = 1 - Math.pow(1 - rnd(), 1.25), u = 1 - t;
+      const bx = u * u * st[0][0] + 2 * u * t * st[1][0] + t * t * st[2][0], by = u * u * st[0][1] + 2 * u * t * st[1][1] + t * t * st[2][1];
+      const w = 0.95e7 * (1 - 0.5 * t);
+      px = bx + gauss() * w; py = by + gauss() * w;
+      if (rnd() < 0.18) { px += gauss() * 0.3e7; py += gauss() * 0.3e7; }
+    } else { const q = P((rnd() * 2 - 1) * 2.6e8, (rnd() * 2 - 1) * 1.6e8); px = q[0]; py = q[1]; }
+    if (Math.hypot(px, py) < 4.5e6) continue;
+    x[i] = px; y[i] = py; a[i] = 0.4 + rnd() * 0.45; c[i] = tIndex(4800 + rnd() * 2600); s[i] = rnd() < 0.06 ? 1 : 0; i++;
+  }
+  return { n, x, y, a, c, s, ga, virgo, centre: [ga[0] * 0.55, ga[1] * 0.55] };
+}
+/* the cosmic web: points concentrated on the walls of a jittered Voronoi lattice, with a junction at our position */
+const LAM = 3.5e8, LG_R = 72;
+function genWeb(phone) {
+  const SEED = new Float64Array((2 * LG_R + 1) * (2 * LG_R + 1) * 2);
+  const idx = (i, j) => ((j + LG_R) * (2 * LG_R + 1) + (i + LG_R)) * 2;
+  for (let j = -LG_R; j <= LG_R; j++) for (let i = -LG_R; i <= LG_R; i++) {
+    const k = idx(i, j);
+    SEED[k] = (i + 0.5 + (hash(i, j, 11) - 0.5) * 0.85) * LAM; SEED[k + 1] = (j + 0.5 + (hash(i, j, 12) - 0.5) * 0.85) * LAM;
+  }
+  const out = [0, 0, 0];
+  function near3(qx, qy) {
+    let d1 = Infinity, d2 = Infinity, d3 = Infinity;
+    const ci = Math.floor(qx / LAM), cj = Math.floor(qy / LAM);
+    for (let j = cj - 1; j <= cj + 1; j++) for (let i = ci - 1; i <= ci + 1; i++) {
+      if (i < -LG_R || i > LG_R || j < -LG_R || j > LG_R) continue;
+      const k = idx(i, j), dx = SEED[k] - qx, dy = SEED[k + 1] - qy, dd = Math.sqrt(dx * dx + dy * dy);
+      if (dd < d1) { d3 = d2; d2 = d1; d1 = dd; } else if (dd < d2) { d3 = d2; d2 = dd; } else if (dd < d3) d3 = dd;
+    }
+    out[0] = d1; out[1] = d2; out[2] = d3; return out;
+  }
+  // put a junction of three cells at the origin
+  let best = Infinity, ox = 0, oy = 0;
+  for (let j = -30; j <= 30; j++) for (let i = -30; i <= 30; i++) {
+    const qx = (i / 30) * LAM * 0.9, qy = (j / 30) * LAM * 0.9, r = near3(qx, qy), v = r[2] - r[0];
+    if (v < best) { best = v; ox = qx; oy = qy; }
+  }
+  const rnd = mulberry32(777), f = phone ? 0.5 : 1;
+  const LV = [[1.5e9, 5000, 1], [6e9, 9000, 1], [2.4e10, 7000, 1], [R_OBS, 10000, 0]];
+  return LV.map(([R, n0, structured], li) => {
+    const n = Math.round(n0 * f), x = new Float64Array(n), y = new Float64Array(n), a = new Float32Array(n), c = new Uint8Array(n);
+    let i = 0, tries = 0;
+    while (i < n && tries < n * 400) {
+      tries++;
+      const rr = R * Math.sqrt(rnd()), ang = rnd() * TAU;
+      let px = Math.cos(ang) * rr, py = Math.sin(ang) * rr, al = 0.5 + rnd() * 0.45;
+      if (structured) {
+        const r = near3(px + ox, py + oy), e2 = (r[1] - r[0]) / LAM, e3 = (r[2] - r[0]) / LAM;
+        const p = 0.012 + 0.988 * Math.exp(-((e2 / 0.055) ** 2)) * (0.3 + 0.7 * Math.exp(-((e3 / 0.13) ** 2)));
+        if (rnd() > p) continue;
+        al *= 1 - smooth((rr / R - 0.45) / 0.55);
+      } else {
+        if (rnd() < 0.35 && i > 0) { const j = Math.floor(rnd() * i); px = x[j] + (rnd() - 0.5) * R * 0.012; py = y[j] + (rnd() - 0.5) * R * 0.012; }
+        const q = Math.hypot(px, py) / R;
+        if (q > 1) continue;
+        al *= 1 - 0.85 * smooth((q - 0.7) / 0.29);
+      }
+      x[i] = px; y[i] = py; a[i] = al; c[i] = tIndex(4800 + rnd() * 2600); i++;
+    }
+    return { R, n: i, x, y, a, c, perDot: (2e12 * Math.pow(R / R_OBS, 3)) / Math.max(1, i), li };
+  });
+}
+
+/* ---------------- the camera ---------------- */
+function panP(s) { return clamp01((s - 2.8) / 2.2) * field.Ptot; }
+function camera(s, z) {
+  if (s <= 2.8) { camX = 0; camY = 0; return; }
+  if (s < 5) { camX = panP(s); camY = 0; return; }
+  // after the pan: glide between anchors, linear in view width, so fixed points barely move on screen
+  const W = Math.pow(10, z);
+  anchors[0][1] = [field.Ptot, 0];
+  for (let k = 0; k < anchors.length - 1; k++) {
+    const [W0, A] = anchors[k], [W1, B] = anchors[k + 1];
+    if (W <= W1 || k === anchors.length - 2) {
+      const t = smooth((W - W0) / (W1 - W0));
+      camX = A[0] + (B[0] - A[0]) * t; camY = A[1] + (B[1] - A[1]) * t; return;
+    }
+  }
+}
+const SX = (wx) => FX + (wx - camX) * sc, SY = (wy) => FY + (wy - camY) * sc;
+
+/* ---------------- canvas text ---------------- */
+let FONT = '11px monospace';
+function label(x, y, l1, l2, a, prefer) {
+  if (a <= 0.01) return;
+  const d = D, g = 9 * d, m = 10 * d;
+  ctx.font = FONT; ctx.textBaseline = 'middle';
+  const w = Math.max(ctx.measureText(l1).width, l2 ? ctx.measureText(l2).width : 0);
+  let side = prefer || 1;
+  if (side > 0 && x + g + w > Wd - m) side = -1; else if (side < 0 && x - g - w < m) side = 1;
+  let tx = side > 0 ? x + g : x - g;
+  ctx.textAlign = side > 0 ? 'left' : 'right';
+  if (side > 0) tx = Math.min(tx, Wd - m - w); else tx = Math.max(tx, m + w);
+  const lh = 14 * d, y0 = l2 ? y - lh / 2 : y;
+  ctx.globalAlpha = a * 0.85; ctx.fillStyle = `rgb(${BONE})`; ctx.fillText(l1, tx, y0);
+  if (l2) { ctx.globalAlpha = a * 0.75; ctx.fillStyle = ENT.C.dim || '#8e919c'; ctx.fillText(l2, tx, y0 + lh); }
+  ctx.globalAlpha = 1;
+}
+function ring(x, y, r, lw, style, a) {
+  if (a <= 0.01) return;
+  ctx.globalAlpha = a; ctx.strokeStyle = style; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+}
+function glow(x, y, r, rgb, a) {
+  if (a <= 0.003 || r <= 0) return;
+  const gr = ctx.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, `rgba(${rgb},${a})`); gr.addColorStop(0.3, `rgba(${rgb},${a * 0.35})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+const onScreen = (x, y, pad) => x > -pad && x < Wd + pad && y > -pad && y < Hd + pad;
+function drawSprite(cx, cy, th, k, sizeLy, a) {
+  if (a <= 0.003) return;
+  const px = sizeLy * sc; // device px across the sprite's 120,000-light-year square, scaled
+  if (px < 0.6) return;
+  const m = px / 512, cs = Math.cos(th), sn = Math.sin(th);
+  ctx.globalAlpha = a;
+  ctx.setTransform(m * cs, m * sn, -m * sn * k, m * cs * k, cx, cy);
+  ctx.drawImage(sprite, -256, -256);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+}
+
+/* ---------------- the frame ---------------- */
+const FILL_C0 = 11, FILL_G = 18, FILL_K = 4, FILL_L = 4;
+let clk = 0, panDots = 0, viewDots = 0, webLevel = -1;
+function draw(s) {
+  const z = s2z(s), W = Math.pow(10, z), d = D, ph = phaseOf(s);
+  sc = SMIN / W;
+  camera(s, z);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = '#050609'; ctx.fillRect(0, 0, Wd, Hd);
+  nDots = 0;
+  const x0 = camX - FX / sc, x1 = camX + (Wd - FX) / sc, y0 = camY - FY / sc, y1 = camY + (Hd - FY) / sc;
+  const cssPx = (ly) => (ly * sc) / d;
+  const ox = SX(0), oy = SY(0);
+
+  /* haze of unresolved stars, inside the disk */
+  const haze = 0.05 * smooth((z - 2.4) / 1.1) * (1 - smooth((z - 3.7) / 0.6));
+  if (haze > 0.002) { ctx.fillStyle = `rgba(${WARM},${haze})`; ctx.fillRect(0, 0, Wd, Hd); }
+
+  /* the observable universe: a faint disk and, at its rim, the afterglow */
+  const uni = smooth((z - 10.35) / 0.55);
+  if (uni > 0.003) {
+    const R = R_OBS * sc;
+    const gr = ctx.createRadialGradient(ox, oy, 0, ox, oy, R);
+    gr.addColorStop(0, `rgba(${BONE},${0.035 * uni})`); gr.addColorStop(0.8, `rgba(${BONE},${0.025 * uni})`); gr.addColorStop(1, `rgba(${BONE},0)`);
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(ox, oy, R, 0, TAU); ctx.fill();
+  }
+
+  /* galaxy sprites: the Milky Way glow, then Andromeda and Triangulum */
+  const lgExt = cssPx(3.4e6), lgFade = smooth((lgExt - 6) / 10);
+  const mwIn = smooth((z - 3.35) / 0.6);
+  const boost = smooth((160 - cssPx(2 * R_MW)) / 110);
+  if (z > 3.3 && lgFade > 0) {
+    drawSprite(SX(galaxy.gc[0]), SY(galaxy.gc[1]), galaxy.th, G_K, 120000, 0.95 * mwIn * lgFade);
+    if (boost > 0) { ctx.globalCompositeOperation = 'lighter'; drawSprite(SX(galaxy.gc[0]), SY(galaxy.gc[1]), galaxy.th, G_K, 120000, 0.9 * boost * lgFade); ctx.globalCompositeOperation = 'source-over'; }
+  }
+  if (z > 5.6 && lgFade > 0) {
+    const a = smooth((z - 5.7) / 0.4) * lgFade;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 2; k++) {
+      drawSprite(SX(lg.m31[0]), SY(lg.m31[1]), rad(V.m31 + 62), 0.32, 168000, a * 0.9);
+      drawSprite(SX(lg.tri[0]), SY(lg.tri[1]), rad(V.m31 - 30), 0.68, 60000, a * 0.8);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* cosmic web levels */
+  webLevel = -1; let wbest = 0;
+  if (z > 8.55) {
+    const LA = [band(z, 8.6, 9.1, 9.55, 9.95), band(z, 9.35, 9.8, 10.15, 10.5), band(z, 9.95, 10.3, 10.65, 10.95), smooth((z - 10.4) / 0.45)];
+    for (let k = 0; k < web.length; k++) {
+      const A = LA[k], L = web[k]; if (A <= 0.01) continue;
+      if (A > wbest - 0.05) { wbest = A; webLevel = k; }
+      if (cssPx(L.R) < 2) continue;
+      for (let i = 0; i < L.n; i++) {
+        const sx = SX(L.x[i]), sy = SY(L.y[i]);
+        if (sx < -2 || sx > Wd + 2 || sy < -2 || sy > Hd + 2) continue;
+        dot(L.c[i], L.a[i] * A, 0, sx, sy);
+      }
+    }
+  }
+
+  /* Laniakea */
+  const lanA = smooth((z - 7.15) / 0.6) * smooth((cssPx(LAN_LEN) - 35) / 70);
+  if (lanA > 0.004) {
+    for (let i = 0; i < lan.n; i++) {
+      const sx = SX(lan.x[i]), sy = SY(lan.y[i]);
+      if (sx < -3 || sx > Wd + 3 || sy < -3 || sy > Hd + 3) continue;
+      dot(lan.c[i], lan.a[i] * lanA, lan.s[i], sx, sy);
+    }
+  }
+  // our Local Group as one dot among them, once its galaxies have merged into one point
+  const lgDot = (1 - lgFade) * smooth((z - 7.0) / 0.4) * (1 - smooth((z - 10.2) / 0.5));
+  if (lgDot > 0.01) dot(tIndex(5600), 0.95 * lgDot, 1, ox, oy);
+
+  /* Local Group dwarfs */
+  if (z > 5.3 && lgFade > 0) {
+    const a = smooth((z - 5.4) / 0.45) * lgFade;
+    for (let i = 0; i < lg.n; i++) {
+      const sx = SX(lg.x[i]), sy = SY(lg.y[i]);
+      if (onScreen(sx, sy, 2)) dot(lg.c[i], lg.a[i] * a, 1, sx, sy);
+    }
+  }
+
+  /* Milky Way stars */
+  const gExt = cssPx(2 * R_MW), gA = smooth((z - 3.5) / 0.5) * smooth((gExt - 55) / 90);
+  if (gA > 0.004) {
+    for (let i = 0; i < galaxy.n; i++) {
+      const sx = SX(galaxy.x[i]), sy = SY(galaxy.y[i]);
+      if (sx < -3 || sx > Wd + 3 || sy < -3 || sy > Hd + 3) continue;
+      dot(galaxy.c[i], galaxy.a[i] * gA, galaxy.s[i], sx, sy);
+    }
+  }
+
+  /* fill: more and more stars crowd in once the view is wider than the pan */
+  viewDots = 0;
+  const fillA = smooth((z - 2.04) / 0.3) * (1 - smooth((z - 3.65) / 0.5));
+  if (fillA > 0.004) {
+    const n0 = nDots;
+    for (let L = 0; L < FILL_L; L++) {
+      const c = FILL_C0 * Math.pow(4, L), l = Math.log(W / (FILL_G * c)) / Math.log(4);
+      const La = fillA * (l <= 0 ? 1 : 1 - clamp01(l));
+      if (La <= 0.004) continue;
+      const q = Math.min(1, Math.pow((FILL_G * c) / W, 2)), qb = 0.25 * q;
+      const i0 = Math.floor(x0 / c), i1 = Math.floor(x1 / c), j0 = Math.floor(y0 / c), j1 = Math.floor(y1 / c);
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) for (let k = 0; k < FILL_K; k++) {
+        const key = L * 32 + k * 5, w = hash(i, j, key);
+        if (w >= q) continue;
+        const sx = SX((i + hash(i, j, key + 1)) * c), sy = SY((j + hash(i, j, key + 2)) * c);
+        const t = hash(i, j, key + 3);
+        const ci = t < 0.7 ? 1 + Math.floor(t * 4) : 4 + Math.floor((t - 0.7) * 17);
+        dot(Math.min(8, ci), La * (0.2 + 0.32 * t) * clamp01((q - w) / qb), 0, sx, sy);
+      }
+    }
+    viewDots += nDots - n0;
+  }
+
+  /* the field of single stars: the gap, the pan, then the strip you panned through */
+  panDots = 0;
+  const fieldA = smooth((z - 0.8) / 0.2);
+  const P = s <= 2.8 ? 0 : panP(s);
+  const stripLen = cssPx(field.Wv + 0.8 * field.Ptot);
+  const stripA = fieldA * (s < 5 ? 1 : smooth((stripLen - 10) / 30) * (1 - 0.15 * smooth((z - 2.05) / 0.8)));
+  const shrink = s < 5 || z < 2.15 ? 2 : z < 2.5 ? 1 : 0;
+  if (stripA > 0.004) {
+    const tw = !reduced && s > 2.8 && s < 5 ? clk : 0;
+    const dz = z < 2 ? W / (2 * field.asp) : Infinity;
+    let budget = 0;
+    for (const L of field.layers) {
+      const sh = (1 - L.f) * P;
+      budget += lowerBound(L.x, L.n, x1 - sh + 1) - lowerBound(L.x, L.n, x0 - sh - 1);
+    }
+    const step = Math.max(1, Math.ceil(budget / (D > 1 ? 4200 : 5200)));
+    const n0 = nDots;
+    for (const L of field.layers) {
+      const sh = (1 - L.f) * P, lo = lowerBound(L.x, L.n, x0 - sh - 1), hi = lowerBound(L.x, L.n, x1 - sh + 1);
+      for (let i = lo; i < hi; i += step) {
+        const yy = L.y[i]; if (yy < y0 - 1 || yy > y1 + 1) continue;
+        let a = L.a[i] * stripA;
+        if (dz !== Infinity) { const ad = Math.abs(L.d[i]); if (ad > dz) continue; a *= clamp01((dz - ad) / (0.3 * dz)); }
+        if (tw) a *= 1 + 0.09 * Math.sin(tw * L.sp[i] + L.ph[i]);
+        dot(L.c[i], a, L.s[i] > shrink ? shrink : L.s[i], SX(L.x[i] + sh), SY(yy));
+      }
+    }
+    panDots = nDots - n0;
+    viewDots += panDots * step;
+  }
+
+  flush();
+
+  /* the Sun */
+  if (onScreen(ox, oy, 40)) {
+    const big = 1 - smooth((z + 3.3) / 3.6); // a disk with glow at first, a point among stars later
+    const fade = 1 - smooth((z - 3.0) / 0.4);
+    if (fade > 0) {
+      glow(ox, oy, (5 + 22 * big) * d, SUNC, (0.3 + 0.35 * big) * fade);
+      ctx.fillStyle = `rgba(255,248,236,${fade})`;
+      ctx.beginPath(); ctx.arc(ox, oy, (1.1 + 1.9 * big) * d, 0, TAU); ctx.fill();
+    }
+  }
+
+  /* the planets' orbits and Voyager 1 */
+  if (z < 0.6) {
+    const lab = V.lab;
+    const orbit = (R, l1, l2, angDeg) => {
+      const r = R * sc, rc = r / d, a = smooth((rc - 4) / 9);
+      if (a <= 0.01 || r > 3 * Math.max(Wd, Hd)) return;
+      ring(ox, oy, r, d, `rgba(${BONE},0.32)`, a);
+      const la = a * smooth((rc - 34) / 26), an = rad(angDeg);
+      label(ox + Math.cos(an) * r, oy + Math.sin(an) * r, l1, l2, la, Math.cos(an) >= 0 ? 1 : -1);
+    };
+    orbit(R_EARTH, "Earth's orbit", '8.3 light-minutes', lab > 0 ? -58 : -52);
+    orbit(R_NEP, "Neptune's orbit", '4.2 light-hours', lab > 0 ? 58 : 40);
+    // Earth itself, a speck on its orbit
+    const er = R_EARTH * sc, ea = smooth((er / d - 6) / 10);
+    if (ea > 0.01) { ctx.globalAlpha = 0.8 * ea; ctx.fillStyle = ENT.C.ice || '#a9c8ff'; ctx.beginPath(); ctx.arc(ox + Math.cos(rad(152)) * er, oy + Math.sin(rad(152)) * er, 1.6 * d, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; }
+    const vd = dir(V.voy), vx = ox + vd[0] * R_VOY * sc, vy = oy + vd[1] * R_VOY * sc, vr = (R_VOY * sc) / d;
+    const va = smooth((vr - 4) / 10);
+    if (va > 0.01 && onScreen(vx, vy, 60)) {
+      glow(vx, vy, 7 * d, '255,138,74', 0.35 * va);
+      ctx.globalAlpha = va; ctx.fillStyle = EMBER; ctx.beginPath(); ctx.arc(vx, vy, 2.1 * d, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      label(vx, vy, 'Voyager 1', '1 light-day from the Sun', va * smooth((vr - 30) / 30), vd[0] >= 0 ? 1 : -1);
+    }
+  }
+
+  /* Alpha Centauri */
+  if (z > 0.75 && z < 2.1) {
+    const a = smooth((z - 0.85) / 0.2) * (1 - smooth((z - 1.5) / 0.35));
+    const ax = SX(field.acen[0]), ay = SY(field.acen[1]);
+    label(ax, ay, 'Alpha Centauri · 4.2 light-years', null, a, V.lab > 0 ? 1 : 1);
+  }
+
+  /* the afterglow of the Big Bang */
+  if (uni > 0.003) {
+    const R = R_OBS * sc, w = Math.max(3 * d, R * 0.035);
+    const gr = ctx.createRadialGradient(ox, oy, Math.max(0, R - w * 2.4), ox, oy, R + w * 0.6);
+    gr.addColorStop(0, `rgba(${CMB},0)`); gr.addColorStop(0.55, `rgba(${CMB},${0.08 * uni})`);
+    gr.addColorStop(0.82, `rgba(${CMB},${0.55 * uni})`); gr.addColorStop(0.9, `rgba(${CMB},${0.62 * uni})`); gr.addColorStop(1, `rgba(${CMB},0)`);
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(ox, oy, R + w * 0.6, 0, TAU); ctx.fill();
+    const la = smooth((z - 10.85) / 0.18);
+    if (la > 0.01) {
+      if (V.lab > 0) {
+        ctx.font = FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.globalAlpha = 0.8 * la; ctx.fillStyle = `rgb(${CMB})`;
+        ctx.fillText('The afterglow of the Big Bang', ox, oy + R + w + 8 * d); ctx.globalAlpha = 1;
+      } else {
+        const an = rad(26);
+        label(ox + Math.cos(an) * (R + w * 0.6), oy + Math.sin(an) * (R + w * 0.6), 'The afterglow of the Big Bang', null, la, 1);
+      }
+    }
+  }
+
+  /* names */
+  if (z > 3.6 && z < 6.5) label(ox, oy, 'You are here', null, band(z, 3.75, 4.1, 5.4, 5.7), V.lab > 0 ? 1 : -1);
+  if (z > 5.4 && z < 8.1) {
+    const a = band(z, 5.7, 6.0, 7.15, 7.45);
+    const gx = SX(galaxy.gc[0]), gy = SY(galaxy.gc[1]), off = Math.max(10 * d, cssPx(60000) * d);
+    label(gx, gy + off, 'Milky Way', null, a, V.lab > 0 ? 1 : -1);
+    const mx = SX(lg.m31[0]), my = SY(lg.m31[1]);
+    if (onScreen(mx, my, 0)) label(mx, my - Math.max(10 * d, cssPx(80000) * d), 'Andromeda', null, a * smooth((z - 5.8) / 0.3), 1);
+    const tx = SX(lg.tri[0]), ty = SY(lg.tri[1]);
+    if (onScreen(tx, ty, 0)) label(tx, ty, 'Triangulum', null, a * smooth((z - 6.0) / 0.3), 1);
+  }
+  if (z > 7.7 && z < 9.9) {
+    const a = band(z, 7.85, 8.2, 9.45, 9.85);
+    const vx = SX(lan.virgo[0]), vy = SY(lan.virgo[1]);
+    if (onScreen(vx, vy, 0)) label(vx, vy, 'Virgo Cluster', null, a, V.lab > 0 ? 1 : -1);
+    const gx = SX(lan.ga[0]), gy = SY(lan.ga[1]);
+    if (onScreen(gx, gy, 0)) label(gx, gy, 'Great Attractor', null, a * smooth((z - 8.3) / 0.3), 1);
+  }
+
+  /* you are here */
+  const yr = smooth((z - 3.1) / 0.4);
+  if (yr > 0.01) ring(ox, oy, 5.5 * d, 1.3 * d, EMBER, yr);
+}
+
+/* ---------------- HUD ---------------- */
+const elScale = $('invScale'), elName = $('invName'), elStars = $('invStars'), elCount = $('invCount'), elVoy = $('invVoy'), elDot = $('invDot');
+const elPan = $('invPan'), elPassed = $('invPassed'), elPace = $('invPace');
+const elBarL = $('invBarL'), elBarLine = $('invBarLine'), elBarT1 = $('invBarT1');
+const setText = (el, t) => { if (el._t !== t) { el._t = t; el.textContent = t; } };
+const BARS = [];
+[[LMIN, 'light-minute', [1, 2, 5, 10, 20, 30]], [LHOUR, 'light-hour', [1, 2, 5, 10, 20]], [LDAY, 'light-day', [1, 2, 5, 10, 20, 50, 100, 200]]]
+  .forEach(([ly, name, steps]) => steps.forEach((k) => BARS.push([k * ly, `${k} ${name}${k === 1 ? '' : 's'}`])));
+for (let e = 0; e <= 11; e++) for (const k of [1, 2, 5]) {
+  const v = k * Math.pow(10, e);
+  if (v > 2e11) break;
+  const t = v < 1e6 ? `${commas(String(v))} light-year${v === 1 ? '' : 's'}` : v < 1e9 ? `${v / 1e6} million light-years` : `${v / 1e9} billion light-years`;
+  BARS.push([v, t]);
+}
+let panOp = -1, passed = 0;
+function hud(s) {
+  const z = s2z(s), W = Math.pow(10, z), ph = phaseOf(s);
+  setText(elScale, widthText(W));
+  setText(elName, NAMES[ph]);
+  const Ns = starsInView(z), str = Ns < 1000 ? String(Math.round(Ns)) : sigInt(Ns, 2), N = num(str);
+  setText(elStars, str);
+  setText(elCount, durText(N, false));
+  setText(elVoy, durText((Math.min(W, 2 * R_OBS) / VOY_LY_PER_YEAR) * YEAR_S, true));
+  // one dot =
+  let dt = '';
+  if (ph === 2) dt = 'One dot = 1 star';
+  else if (ph === 3) { const r = Ns / Math.max(1, viewDots); dt = r < 1.5 ? 'One dot = 1 star' : `One dot ≈ ${countWords(r, 1)} stars`; }
+  else if (ph === 4) dt = `One dot ≈ ${countWords(2e11 / galaxy.n, 1)} stars`;
+  else if (ph === 5) dt = 'One dot = 1 galaxy';
+  else if (ph === 6) dt = `One dot ≈ ${countWords(1e5 / lan.n, 2)} galaxies`;
+  else if (ph === 7) { const L = web[webLevel < 0 ? 0 : webLevel]; dt = `One dot ≈ ${countWords(L.perDot, 2)} galaxies`; }
+  elDot.classList.toggle('inv-off', !dt);
+  if (dt) setText(elDot, dt);
+  // scale bar
+  const pxPerLy = SMIN / D / W;
+  let pick = BARS[0];
+  for (const b of BARS) if (b[0] * pxPerLy <= 160) pick = b;
+  const len = Math.max(1, pick[0] * pxPerLy);
+  setText(elBarL, pick[1]);
+  elBarLine.style.transform = `scaleX(${(len / 160).toFixed(4)})`;
+  elBarT1.style.transform = `translateX(${(len - 1).toFixed(1)}px)`;
+  // the count
+  const op = Math.round(smooth((s - 2.8) / 0.12) * (1 - smooth((s - 6.2) / 0.3)) * 50) / 50;
+  if (op !== panOp) { panOp = op; elPan.style.opacity = op; elPan.style.visibility = op === 0 ? 'hidden' : 'visible'; }
+  passed = s <= 2.8 ? 0 : starsPassed(panP(s));
+  setText(elPassed, ENT.fmtInt(passed));
+}
+/* the reader's own pace: stars passed per second over the last 2 seconds */
+const paceT = [], paceX = [];
+let paceRate = 0, lastPX = -1, lastMoveT = -1e9, lastPaceUI = 0;
+function pace(now) {
+  if (panOp <= 0) return;
+  if (passed !== lastPX) { if (lastPX >= 0) lastMoveT = now; lastPX = passed; }
+  paceT.push(now); paceX.push(passed);
+  while (paceT.length > 2 && now - paceT[0] > 2000) { paceT.shift(); paceX.shift(); }
+  const span = (now - paceT[0]) / 1000, dX = passed - paceX[0];
+  if (now - lastMoveT < 250 && dX > 0 && span > 0.2) paceRate = dX / span;
+  if (now - lastPaceUI < 250) return;
+  lastPaceUI = now;
+  if (paceRate <= 0) { setText(elPace, 'Keep scrolling.'); return; }
+  const left = 2e11 - passed, sec = left / paceRate;
+  setText(elPace, `At this pace, the rest of this galaxy takes ${durText(sec, false)} of scrolling.`);
+}
+
+/* ---------------- captions ---------------- */
+const cards = [...$('invCards').children].map((el) => ({ el, s: +el.dataset.s, top: 0, h: 0, op: -1, cut: -1 }));
+let fadeLine = 0, floorBar = 1e9, floorPan = 1e9;
+function layoutCards() {
+  cards.forEach((c) => { c.h = c.el.offsetHeight; });
+  let prev = -Infinity;
+  for (const c of cards) {
+    let top = (c.s + 0.58) * SH;
+    if (top < prev + 24) top = prev + 24;
+    c.top = top; prev = top + c.h;
+  }
+  cards.forEach((c) => { c.el.style.top = `${Math.round(c.top)}px`; c.op = -1; c.cut = -1; });
+}
+function fadeCards(y) {
+  // captions fade before they reach the HUD above them and emerge from a soft edge above the scale bar (and the count)
+  const stageTop = Math.max(0, Math.min(SMAX * SH, y - trackTop));
+  const s = (y - trackTop) / SH;
+  const po = smooth((s - 2.7) / 0.15) * (1 - smooth((s - 6.2) / 0.3));
+  const floor = floorBar + (floorPan - floorBar) * po;
+  for (const c of cards) {
+    const rel = c.top - stageTop;
+    if ((rel > SH + 40 || rel + c.h < -40) && c.op >= 0 && c.cut === 0) continue;
+    let op = Math.round(clamp01((rel - fadeLine) / (phoneMQ.matches ? 50 : 70)) * 50) / 50;
+    const vp = trackTop + c.top - y;
+    const cut = Math.max(0, Math.min(c.h, Math.round(vp + c.h - floor)));
+    if (cut >= c.h - 2) op = 0;
+    if (op !== c.op) { c.op = op; c.el.style.opacity = op; c.el.style.visibility = op === 0 ? 'hidden' : ''; }
+    if (cut !== c.cut) {
+      c.cut = cut;
+      const m = cut > 0 ? `linear-gradient(#000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
+      c.el.style.webkitMaskImage = m; c.el.style.maskImage = m;
+    }
+  }
+}
+
+/* ---------------- layout ---------------- */
+let SH = window.innerHeight, lastVW = 0, trackTop = 0;
+function measureTrack() { trackTop = track.getBoundingClientRect().top + window.scrollY; }
+function layout(force) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (force || vw !== lastVW || Math.abs(vh - SH) >= 120) { SH = vh; track.style.setProperty('--inv-h', `${SH}px`); }
+  lastVW = vw;
+  const dims = fit(cv); Wd = dims.w; Hd = dims.h; D = dims.d;
+  CW = Wd / D; CH = Hd / D; SMIN = Math.min(Wd, Hd);
+  const phone = phoneMQ.matches, tall = CH > CW * 1.15;
+  V = tall ? V_TALL : V_WIDE;
+  FX = Wd * (CW >= 900 ? 0.585 : 0.5); FY = Hd * (phone ? 0.44 : 0.5);
+  SZ = [Math.max(1, Math.round(D)), Math.max(1.5, 1.5 * D), 2.2 * D];
+  FONT = `${10.5 * D}px "IBM Plex Mono", ui-monospace, monospace`;
+  const wk = `${tall}|${phone}`;
+  if (wk !== worldKey) {
+    worldKey = wk;
+    galaxy = genGalaxy(phone ? 3500 : 7000);
+    if (!sprite) sprite = genSprite();
+    lg = genLocalGroup(); lan = genLaniakea(4000);
+    if (!web || web._phone !== phone) { web = genWeb(phone); web._phone = phone; }
+  }
+  const fk = `${Math.round(CW)}x${Math.round(CH)}|${FX / Wd}|${FY / Hd}|${wk}`;
+  if (fk !== fieldKey) { fieldKey = fk; field = genField(); }
+  anchors = [[100, [field.Ptot, 0]], [Math.pow(10, 5.3), galaxy.gc], [Math.pow(10, 7.2), lg.centre], [1e9, lan.centre], [Math.pow(10, 11.05), [0, 0]]];
+  // HUD geometry
+  const st = stage.getBoundingClientRect();
+  const side = $('invSide').getBoundingClientRect();
+  if (!phone) elPan.style.top = `${Math.round(side.bottom - st.top + 22)}px`; else elPan.style.top = '';
+  floorBar = $('invBar').getBoundingClientRect().top - st.top - 10;
+  floorPan = phone ? elPan.getBoundingClientRect().top - st.top - 10 : floorBar;
+  const cr = cards[0].el.getBoundingClientRect();
+  fadeLine = 0;
+  for (const el of [$('invScalebox'), $('invSide')]) {
+    const r = el.getBoundingClientRect();
+    if (r.right > cr.left && r.left < cr.right) fadeLine = Math.max(fadeLine, r.bottom - st.top);
+  }
+  fadeLine += 10;
+  layoutCards();
+  measureTrack();
+  lastS = NaN; lastY = NaN; dirty = true;
+}
+
+/* ---------------- frame loop ---------------- */
+let lastS = NaN, lastY = NaN, dirty = true;
+const curS = (y) => Math.max(0, Math.min(SMAX, (y - trackTop) / SH));
+ENT.watch(track);
+ENT.onFrame((dt) => {
+  if (!ENT.isVisible(track)) return;
+  clk += Math.min(dt, 0.1);
+  const y = window.scrollY, s = curS(y);
+  const twinkle = !reduced && s > 2.8 && s < 5;
+  if (s !== lastS || dirty || twinkle) {
+    const t0 = performance.now();
+    draw(s); dirty = false;
+    if (window.__invPerf) window.__invPerf.push(performance.now() - t0);
+  }
+  if (s !== lastS) { hud(s); lastS = s; }
+  pace(performance.now());
+  if (y !== lastY) { fadeCards(y); lastY = y; }
+});
+ENT.onResize(() => layout(false));
+if ('ResizeObserver' in window) new ResizeObserver(() => { measureTrack(); lastY = NaN; dirty = true; }).observe(document.body);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layout(true));
+window.addEventListener('load', () => layout(true));
+
+layout(true);
+const s0 = curS(window.scrollY);
+draw(s0); hud(s0); lastS = s0;
+fadeCards(window.scrollY); lastY = window.scrollY;
+})();
+
+</script>
+<script>
+(() => {
+'use strict';
 const { $, MINUS, neg } = window.ENT;
 const MSUN = 1.989e30, SKY = 2.725;
 const PRESETS = [3.003e-6, 1, 4.3e6, 6.5e9, 6.6e10];
@@ -1484,6 +2610,44 @@ for (let i = 0; i < 11; i++) sparks.push({ us: 14.05 + rnd() * 4.55, dur: 0.3 + 
 const motes = [];
 for (let i = 0; i < 40; i++) motes.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 5, vy: (rnd() - 0.5) * 5, end: 104 + rnd() * 2.6, a: 0.09 + rnd() * 0.09 });
 
+// the reader's atom: at the Sun's place in the disk, about 55% of the way out, on the near side
+const ATOM = { dx: Math.cos(1.95) * 0.55, dy: Math.sin(1.95) * 0.55 * 0.27, ex: -0.16, ey: 0.115 };
+ATOM.ej = Math.atan2(ATOM.ey, ATOM.ex);
+const EMB = '255,138,74';
+
+// stars shining in the observable universe: 2e23 x the fraction of the model's ordinary stars alive (whole pool,
+// so every screen size agrees), held to its running minimum so the count never rises on the way down
+const NSTEP = 0.002, NTAB = Math.ceil((14 - U0) / NSTEP) + 1, starTab = new Float64Array(NTAB);
+{
+  let a0 = 0; for (const st of stars) if (U0 >= st.ub && U0 < st.ud) a0++;
+  let run = Infinity;
+  for (let i = 0; i < NTAB; i++) {
+    const u = Math.min(14, U0 + i * NSTEP);
+    let n = 0; for (const st of stars) if (u >= st.ub && u < st.ud) n++;
+    run = Math.min(run, Math.max(2e14, 2e23 * (n / a0)));
+    starTab[i] = run;
+  }
+}
+function starsAt(u) {
+  if (u <= 14) return starTab[Math.max(0, Math.min(NTAB - 1, Math.floor((u - U0) / NSTEP + 1e-9)))];
+  if (u <= 19) return 2e14;
+  if (u <= 20.5) return Math.pow(10, Math.log10(2e14) * (1 - (u - 19) / 1.5));
+  return 0;
+}
+function galaxiesAt(u) {
+  if (u > 20) return 0;
+  const x = clamp01((u - U0) / (11.2 - U0));
+  return Math.pow(10, 12.3 * (1 - Math.pow(x, 4)));
+}
+// two significant figures, then zeros, with thousands separators; plain integer below 100
+function fmt2(n) {
+  n = Math.round(n);
+  if (n < 100) return String(n);
+  let e = Math.floor(Math.log10(n)), m = Math.round(n / Math.pow(10, e - 1));
+  if (m >= 100) { m = 10; e++; }
+  return (String(m) + '0'.repeat(e - 1)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 const NS_COL = blackbody(9500).join(','), GLOW = '255,214,170', FLASH = '255,252,245', BONE = '235,229,217';
 const TILT = -0.16, cT = Math.cos(TILT), sT = Math.sin(TILT);
 let W = 1, H = 1, D = 1, R = 100, nStars = 450, alive0 = 1, clk = 0;
@@ -1587,6 +2751,18 @@ function draw(u) {
     dot(toX(sp.x, sp.y), toY(sp.x, sp.y), 1.05 * d);
   }
 
+  if (u < 20.5) { // your atom
+    const k = smooth((u - 10.3) / 0.7);
+    let x = ATOM.dx + (ATOM.ex - ATOM.dx) * k, y = ATOM.dy + (ATOM.ey - ATOM.dy) * k;
+    if (u > 19) { const p = (u - 19) / 1.5, dd = p * p * 4.6; x += Math.cos(ATOM.ej) * dd; y += Math.sin(ATOM.ej) * dd; }
+    const X = toX(x, y), Y = toY(x, y), rr = 6 * d;
+    if (X > -rr * 2 && X < W + rr * 2 && Y > -rr * 2 && Y < H + rr * 2) {
+      ctx.strokeStyle = `rgba(${EMB},0.62)`; ctx.lineWidth = d;
+      ctx.beginPath(); ctx.arc(X, Y, rr, 0, TAU); ctx.stroke();
+      ctx.fillStyle = `rgba(${EMB},0.95)`; dot(X, Y, 1.6 * d);
+    }
+  }
+
   // the central black hole, its last moments, and the flash
   const cx = CX(), cy = H / 2, rb = 5.5 * d;
   if (u < 93) {
@@ -1621,7 +2797,22 @@ function draw(u) {
 /* ---------------- HUD ---------------- */
 const elClock = $('dscClock'), elEra = $('dscEra'), elRatio = $('dscRatio'), elTemp = $('dscTemp'), elStretch = $('dscStretch');
 const elHead = $('dscInvHead'), elPips = $('dscPips'), elList = $('dscInvList'), elLost = $('dscLost'), elProton = $('dscProton');
+const elStars = $('dscStars'), elGals = $('dscGals'), elAtom = $('dscAtom');
 let decay = true;
+const ATOM_LINES = [
+  [10.18, 'A carbon atom in your left hand. It was forged in a star that died before the Sun was born.'],
+  [10.33, "In Earth's rock or air. The oceans are gone."],
+  [11.2, 'Either boiled off into the swollen Sun and blown back out among the stars, or still in the cinder of Earth circling a white dwarf. Nobody knows which.'],
+  [15, 'In thin gas between dead and dying stars, or locked inside a cold planet.'],
+  [19.5, 'Whatever world it was part of has been pulled away from its star.'],
+  [21, 'Flung out of the galaxy with almost everything else.'],
+  [37, 'Adrift between what used to be galaxies. Nothing it could ever reach is still within range.'],
+];
+function atomLine(u) {
+  for (const [end, t] of ATOM_LINES) if (u < end) return t;
+  if (decay) return u < 40 ? 'Its protons are decaying.' : 'Gone. It lasted about 10<sup>40</sup> years.';
+  return u < 100.5 ? 'Unchanged. Still carbon.' : 'Still carbon, alone, at the temperature of empty space.';
+}
 const ITEMS = [['Other galaxies in view', 11.2], ['New stars forming', 13], ['Starlight', 14], ['Planets in orbit', 15], ['Galaxies', 20], ['Atoms', 40], ['Black holes', 100], ['Temperature differences', 100.5]];
 const endOf = (it) => (it[0] === 'Atoms' && !decay ? Infinity : it[1]);
 const lis = ITEMS.map((it) => { const li = document.createElement('li'); li.innerHTML = `<span>${it[0]}</span><span></span>`; elList.appendChild(li); return li; });
@@ -1655,10 +2846,21 @@ function hud(u) {
   setHTML(elClock, fmtYears(u));
   setHTML(elEra, eraOf(u));
   const x = u - U0;
-  setHTML(elRatio, x < 0.05 ? '&nbsp;' : `10<sup>${x.toFixed(1)}</sup> × the universe's present age`);
+  setHTML(elRatio, x < 0.05 ? '' : `10<sup>${x.toFixed(1)}</sup> × the universe's present age`);
   const la = log10a(u);
   setHTML(elTemp, tempHTML(u, la));
   setHTML(elStretch, stretchHTML(la));
+  // the two draining counters
+  const ns = starsAt(u), ng = galaxiesAt(u);
+  setHTML(elStars, fmt2(ns)); elStars.classList.toggle('dsc-zero', ns < 0.5);
+  setHTML(elGals, fmt2(ng)); elGals.classList.toggle('dsc-zero', ng < 0.5);
+  { const note = $('dscGalsNote'); if (note) { const t = ng >= 1e6 ? 'upper estimate' : ng >= 1.5 ? '' : ng >= 0.5 ? 'our own' : ''; if (note.textContent !== t) note.textContent = t; } }
+  // your atom
+  const al = atomLine(u);
+  if (elAtom._h !== al) {
+    const first = elAtom._h === undefined; setHTML(elAtom, al);
+    if (!reduced && !first) { elAtom.classList.remove('dsc-new'); void elAtom.offsetWidth; elAtom.classList.add('dsc-new'); }
+  }
   // inventory
   let left = 0, lost = null;
   const gone = ITEMS.map((it) => { const e = endOf(it), g = u >= e; if (!g) left++; else if (!lost || e > endOf(lost)) lost = it; return g; });
@@ -1706,25 +2908,28 @@ function layoutCards() {
   shown.forEach((c) => { c.el.style.top = `${Math.round(c.top)}px`; c.op = -1; c.cut = -1; });
 }
 function fadeCards(y) {
-  // captions fade out before they reach the HUD block above them; on phones they also
-  // emerge from a soft edge above the reserved strip for the .you counter
+  // captions dissolve line by line as they slide under the HUD block above them (so a long card stays
+  // readable while its top has already gone); on phones they also emerge from a soft edge above the
+  // reserved strip for the .you counter
   const stageTop = Math.max(0, Math.min(SMAX * SH, y - trackTop));
   const floor = phoneMQ.matches ? window.innerHeight - 64 : Infinity;
+  const F = phoneMQ.matches ? 44 : 60;
   for (const c of shown) {
     const rel = c.top - stageTop;
-    if ((rel > SH + 40 || rel + c.h < -40) && c.op >= 0 && c.cut === 0) continue;
-    let op = Math.round(clamp01((rel - fadeLine) / (phoneMQ.matches ? 50 : 70)) * 50) / 50;
+    const top = Math.max(0, Math.min(c.h, Math.round(fadeLine - rel)));
     const vp = trackTop + c.top - y;
     const cut = Math.max(0, Math.min(c.h, Math.round(vp + c.h - floor)));
-    if (cut >= c.h - 2) op = 0;
+    const op = top + cut >= c.h - 2 || top >= c.h - F * 0.5 ? 0 : 1;
     if (op !== c.op) {
       c.op = op;
       c.el.style.opacity = op;
       c.el.style.visibility = op === 0 ? 'hidden' : '';
     }
-    if (cut !== c.cut) {
-      c.cut = cut;
-      const m = cut > 0 ? `linear-gradient(#000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
+    const key = op ? top * 4096 + cut : -1;
+    if (key !== c.cut) {
+      c.cut = key;
+      const m = op && (top > 0 || cut > 0)
+        ? `linear-gradient(transparent ${top}px, #000 ${top + F}px, #000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
       c.el.style.webkitMaskImage = m; c.el.style.maskImage = m;
     }
   }
@@ -1835,6 +3040,182 @@ layout(true);
 const u0 = s2u(Math.max(0, Math.min(SMAX, (window.scrollY - trackTop) / SH)));
 draw(u0); hud(u0); lastU = u0;
 fadeCards(window.scrollY); lastY = window.scrollY;
+})();
+
+</script>
+<script>
+(() => {
+'use strict';
+const ENT = window.ENT, $ = ENT.$, C = ENT.C, reduced = ENT.reduced;
+
+/* ================= 08: a box that un-mixes itself ================= */
+const box = (() => {
+  const cv = $('aftCanvas'), ctx = cv.getContext('2d');
+  const BUDGET_MS = 6;       // CPU spent on simulation per frame
+  const DT = 0.00004;        // box seconds per step
+  const VRMS = 1;            // root-mean-square speed, box widths per box second
+  const FREEZE = 0.9;        // seconds the un-mixed state is held
+  let N = 8, x, y, vx, vy, side, left, simT, events, inEvent;
+  let freeze = 0, tint = 0, lastUI = 0, lastDraw = 0, dirty = true, shown = {};
+
+  function init() {
+    const rnd = ENT.mulberry32((Date.now() ^ (Math.random() * 4294967296)) >>> 0);
+    x = new Float64Array(N); y = new Float64Array(N); vx = new Float64Array(N); vy = new Float64Array(N); side = new Uint8Array(N);
+    left = 0;
+    for (let i = 0; i < N; i++) {
+      x[i] = rnd(); y[i] = rnd();
+      const sp = VRMS * Math.sqrt(-Math.log(1 - rnd())), a = rnd() * Math.PI * 2; // Rayleigh speeds, as in a 2D gas
+      vx[i] = Math.cos(a) * sp; vy[i] = Math.sin(a) * sp;
+      side[i] = x[i] < 0.5 ? 1 : 0; left += side[i];
+    }
+    simT = 0; events = 0; inEvent = left === N; freeze = 0; tint = 0; dirty = true;
+  }
+
+  function steps(budgetMs) {
+    const t0 = performance.now();
+    for (;;) {
+      for (let k = 0; k < 64; k++) {
+        for (let i = 0; i < N; i++) {
+          let px = x[i] + vx[i] * DT, py = y[i] + vy[i] * DT;
+          if (px < 0) { px = -px; vx[i] = -vx[i]; } else if (px > 1) { px = 2 - px; vx[i] = -vx[i]; }
+          if (py < 0) { py = -py; vy[i] = -vy[i]; } else if (py > 1) { py = 2 - py; vy[i] = -vy[i]; }
+          x[i] = px; y[i] = py;
+          const s = px < 0.5 ? 1 : 0;
+          if (s !== side[i]) { side[i] = s; left += s ? 1 : -1; }
+        }
+        simT += DT;
+        if (left === N) {
+          if (!inEvent) { inEvent = true; events++; freeze = FREEZE; tint = reduced ? 1 : 0; return; }
+        } else inEvent = false;
+      }
+      if (performance.now() - t0 >= budgetMs) return;
+    }
+  }
+
+  function draw() {
+    const { w, h, d } = ENT.fit(cv);
+    ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
+    if (tint > 0) { ctx.globalAlpha = 0.10 * tint; ctx.fillStyle = C.ember; ctx.fillRect(0, 0, w / 2, h); ctx.globalAlpha = 1; }
+    ctx.strokeStyle = C.dim; ctx.globalAlpha = 0.6; ctx.lineWidth = Math.max(1, d * 0.8);
+    ctx.setLineDash([5 * d, 5 * d]); ctx.beginPath(); ctx.moveTo(Math.round(w / 2) + 0.5, 0); ctx.lineTo(Math.round(w / 2) + 0.5, h); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    let m2 = 0; for (let i = 0; i < N; i++) m2 += vx[i] * vx[i] + vy[i] * vy[i]; m2 = m2 / N || 1;
+    const r = (w < 600 * d ? 4.5 : 5.5) * d, pad = r + d;
+    for (let i = 0; i < N; i++) {
+      const q = (vx[i] * vx[i] + vy[i] * vy[i]) / m2, c = ENT.blackbody(900 * Math.pow(14, Math.min(q, 3) / 3));
+      ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+      ctx.beginPath(); ctx.arc(pad + x[i] * (w - 2 * pad), pad + y[i] * (h - 2 * pad), r, 0, Math.PI * 2); ctx.fill();
+    }
+    if (freeze > 0) {
+      ctx.fillStyle = C.bone; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${Math.round((w < 600 * d ? 15 : 18) * d)}px "IBM Plex Mono", ui-monospace, monospace`;
+      ctx.fillText('Un-mixed.', w * 0.75, h / 2);
+    }
+    dirty = false;
+  }
+
+  function fmtTime(s) {
+    const sig2 = (v) => { if (v < 9.95) return v.toFixed(1); return ENT.fmtInt(v >= 100 ? Math.round(v / Math.pow(10, Math.floor(Math.log10(v)) - 1)) * Math.pow(10, Math.floor(Math.log10(v)) - 1) : Math.round(v)); };
+    const U = [[1, 'second'], [60, 'minute'], [3600, 'hour'], [86400, 'day'], [31557600, 'year']];
+    let k = 0; while (k < U.length - 1 && s >= U[k + 1][0] * 0.995) k++;
+    const v = s / U[k][0], t = sig2(v);
+    return `${t} ${U[k][1]}${t === '1.0' ? '' : 's'}`;
+  }
+  const set = (id, html) => { if (shown[id] !== html) { shown[id] = html; $(id).innerHTML = html; } };
+  function ui(force) {
+    const now = performance.now(); if (!force && now - lastUI < 120) return; lastUI = now;
+    set('aftOdds', `1 in ${ENT.fmtInt(Math.pow(2, N))}`);
+    set('aftTime', fmtTime(simT));
+    set('aftCount', ENT.fmtInt(events));
+    set('aftAvg', events ? fmtTime(simT / events) : 'not yet');
+  }
+
+  function reset() { init(); draw(); ui(true); }
+
+  ENT.onFrame((dt) => {
+    if (!ENT.isVisible(cv)) return;
+    dt = Math.min(dt, 0.1);
+    if (freeze > 0) {
+      freeze -= dt;
+      if (!reduced && tint < 1) tint = Math.min(1, tint + dt / 0.25);
+      if (freeze <= 0) { freeze = 0; tint = 0; }
+      draw(); ui(false); return;
+    }
+    steps(BUDGET_MS);
+    if (freeze > 0) { draw(); ui(true); return; }
+    if (reduced && !freeze) { const now = performance.now(); if (now - lastDraw < 450) { ui(false); return; } lastDraw = now; }
+    draw(); ui(false);
+  });
+
+  $('aftN').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    N = +b.dataset.n; [...$('aftN').children].forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    reset();
+  });
+  $('aftRestart').addEventListener('click', reset);
+  ENT.watch(cv);
+  ENT.onResize(() => draw());
+  reset();
+})();
+
+/* ================= the final button ================= */
+(() => {
+  const ENT = window.ENT, reduced = ENT.reduced;
+  const btn = document.getElementById('aftWait');
+  if (!btn) return;
+  const LINES = [
+    { html: '10<sup>100</sup> years.', hold: 2200 },
+    { html: '10<sup>10<sup>50</sup></sup> years.', hold: 2200 },
+    { html: '10<sup>10<sup>10<sup>56</sup></sup></sup> years.', hold: 2600 },
+    { html: 'On one proposal, a patch of empty space eventually fluctuates into a new beginning: hot, dense, and improbably orderly.', hold: 4500, txt: true },
+  ];
+  let ov = null, timers = [], running = false, finished = false, onKey = null;
+
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  function show(i) {
+    const lines = ov.querySelectorAll('.aft-line');
+    lines.forEach((l, k) => l.classList.toggle('on', k === i));
+  }
+  function finish(skipped) {
+    if (finished) return; finished = true;
+    timers.forEach(clearTimeout); timers = [];
+    ov.classList.remove('in'); ov.classList.add('snap'); // still opaque
+    ov.querySelectorAll('.aft-line').forEach((l) => l.classList.remove('on'));
+    window.scrollTo(0, 0);
+    if (ENT.restartHero) ENT.restartHero();
+    const done = () => {
+      if (onKey) document.removeEventListener('keydown', onKey, true);
+      ov.remove(); ov = null; running = false; btn.disabled = false;
+      document.body.setAttribute('tabindex', '-1'); document.body.focus({ preventScroll: true }); document.body.removeAttribute('tabindex');
+      window.scrollTo(0, 0);
+    };
+    if (reduced) { done(); return; }
+    void ov.offsetWidth;
+    ov.classList.remove('snap'); ov.classList.add('out');
+    later(done, 2450);
+  }
+  function start() {
+    if (running) return; running = true; finished = false; btn.disabled = true;
+    ov = document.createElement('div');
+    ov.className = 'aft-ov' + (reduced ? ' cut' : ''); ov.tabIndex = -1;
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Waiting');
+    ov.innerHTML = LINES.map((l) => `<div class="aft-line${l.txt ? ' txt' : ''}"><span>${l.html}</span></div>`).join('');
+    document.body.appendChild(ov);
+    ov.addEventListener('click', () => finish(true));
+    ov.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+    ov.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    onKey = (e) => { if (e.key === 'Tab') { e.preventDefault(); return; } e.preventDefault(); finish(true); };
+    document.addEventListener('keydown', onKey, true);
+    ov.focus({ preventScroll: true });
+    void ov.offsetWidth;
+    ov.classList.add('in');
+    let t = reduced ? 0 : 1600 + 1200; // fade in, then hold empty
+    if (reduced) { ov.style.opacity = '1'; t = 1200; }
+    LINES.forEach((l, i) => { const at = t; later(() => show(i), at); t += l.hold; });
+    later(() => finish(false), t);
+  }
+  btn.addEventListener('click', start);
+})();
 })();
 
 </script>

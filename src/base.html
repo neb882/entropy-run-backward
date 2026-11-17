@@ -73,6 +73,8 @@ button {
 }
 button:hover { border-color: var(--ember); }
 .seg button:hover { background: #161925; }
+.seg button[aria-pressed="true"]:hover { background: var(--ember); }
+.prose sup sup { font-size: 0.86em; }
 button[aria-pressed="true"] { background: var(--ember); color: #160b05; }
 button.primary { border-color: var(--ember); color: var(--ember); }
 button.primary:hover { background: var(--ember); color: #160b05; }
@@ -172,7 +174,9 @@ footer a { color: var(--dim); }
 .you .hot { color: var(--ember); }
 @media (max-width: 520px) { .you { left: 8px; right: 8px; bottom: 8px; max-width: none; font-size: 11px; padding: 6px 10px; } .you .long { display: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/*@inventory.css*/
 /*@ledger.css*/
+/*@after.css*/
 /*@descent.css*/
 </style>
 </head>
@@ -192,6 +196,7 @@ footer a { color: var(--dim); }
     <div class="prose">
       <p>These 360 particles start packed into one corner. The rules they follow run the same forward and backward, and no force drives them outward. They spread because there are incomparably more ways to be spread out than to stay in the corner, and their motion wanders through arrangements without preference. It ends up where almost all the arrangements are.</p>
       <p>Watch the energy and the work. The energy never changes. The work it could do drains away.</p>
+      <p class="note">Four short experiments come first, then the universe. <a href="#inventory">Skip to the universe</a>.</p>
     </div>
   </div>
 
@@ -339,6 +344,12 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
+</div><!-- /.wrap -->
+
+<!--@inventory.html-->
+
+<div class="wrap">
+
 <!--@ledger.html-->
 
 </div><!-- /.wrap -->
@@ -347,17 +358,7 @@ footer a { color: var(--dim); }
 
 <div class="wrap">
 
-<!-- ================= AFTER ================= -->
-<section class="sec" id="after">
-  <div class="eq"><span class="n">07</span><span class="f">t<sub>return</sub> ~ e<sup>S</sup></span></div>
-  <h2>After the end.</h2>
-  <div class="prose">
-    <p>Heat death is a condition with no scheduled end, and three things about it are still open.</p>
-    <p>It may not be final. A finite system that runs forever eventually revisits its own past, the way the entropy in the first box sometimes dips. That box would need about 10<sup>209</sup> years to refill its corner by chance. If the far future behaves like a finite thermal system, the same arithmetic applies to everything: in roughly 10<sup>10<sup>50</sup></sup> years a single brain, complete with false memories, could assemble out of the vacuum, and in something like 10<sup>10<sup>122</sup></sup> years any arrangement at all could briefly recur. Other physicists argue that empty space settles into a perfectly still state in which no such fluctuation ever happens. Nobody knows which is right.</p>
-    <p>Matter may outlast the black holes. If protons never decay, the dead stars are still out there when the last black hole goes. Over about 10<sup>1500</sup> years, quantum tunnelling would slowly turn each one into a ball of iron, and over spans that need a second exponent to write, even those would collapse.</p>
-    <p>And dark energy may not hold steady. Every date in the descent assumes it stays constant, which is the standard model of cosmology. Since 2024, galaxy surveys have hinted that it may be weakening. If that holds up, the far end of this story changes.</p>
-  </div>
-</section>
+<!--@after.html-->
 
 <!-- ================= CODA ================= -->
 <section class="sec coda">
@@ -369,9 +370,11 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
+<!--@after_end.html-->
+
 <footer>
   <p>Built after Daniel Temkin's <a href="https://entropy-lang.org/">Entropy</a> (2010), a programming language in which data decays as it is used. The gas uses bit-reversible molecular dynamics after Levesque &amp; Verlet (1993): soft disks, integer positions, forces rounded pair by pair so every step can be undone exactly.</p>
-  <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Iron stars: Dyson, “Time Without End” (1979). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
+  <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Scale of the universe: Voyager 1's distance from NASA; Laniakea from Tully et al. (2014); galaxy counts from Conselice et al. (2016), whose two trillion is an upper estimate. Whether thought can last forever: Dyson, “Time Without End” (1979), and Krauss &amp; Starkman, <a href="https://arxiv.org/abs/astro-ph/9902189">“Life, the Universe, and Nothing”</a> (1999). Iron stars: Dyson (1979). A new beginning from empty space: Carroll &amp; Chen (2004). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
   <p>Sky temperature and stretch assume flat ΛCDM with H<sub>0</sub> = 67.7 km/s/Mpc, Ω<sub>m</sub> = 0.31 and constant dark energy; the horizon temperature is the Gibbons–Hawking value, about 2 × 10<sup>−30</sup> K. Black hole figures are for non-rotating holes emitting only light. Proton decay has never been observed, and the lower limit on the proton's lifetime is about 10<sup>34</sup> years; the descent shows both branches. The lifetime of our galaxy's central black hole depends on how much it swallows first and is uncertain by several factors of ten.</p>
   <p>The star field is an illustrative sample with realistic proportions of red dwarfs, Sun-like stars and massive stars. The counter at the bottom of the screen assumes a resting metabolism of about 100 W released as heat into a 20 °C room.</p>
 </footer>
@@ -679,6 +682,7 @@ const hero = (() => {
   if (!running) $('heroPlay').textContent = 'Play';
   watch(cv);
   restart();
+  window.ENT.restartHero = () => { restart(); if (!running && !reduced) { running = true; $('heroPlay').textContent = 'Pause'; } };
   return { tick, draw };
 })();
 
@@ -965,10 +969,16 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 })();
 </script>
 <script>
+//@inventory.js
+</script>
+<script>
 //@ledger.js
 </script>
 <script>
 //@descent.js
+</script>
+<script>
+//@after.js
 </script>
 </body>
 </html>

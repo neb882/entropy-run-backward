@@ -94,6 +94,44 @@ for (let i = 0; i < 11; i++) sparks.push({ us: 14.05 + rnd() * 4.55, dur: 0.3 + 
 const motes = [];
 for (let i = 0; i < 40; i++) motes.push({ x: rnd(), y: rnd(), vx: (rnd() - 0.5) * 5, vy: (rnd() - 0.5) * 5, end: 104 + rnd() * 2.6, a: 0.09 + rnd() * 0.09 });
 
+// the reader's atom: at the Sun's place in the disk, about 55% of the way out, on the near side
+const ATOM = { dx: Math.cos(1.95) * 0.55, dy: Math.sin(1.95) * 0.55 * 0.27, ex: -0.16, ey: 0.115 };
+ATOM.ej = Math.atan2(ATOM.ey, ATOM.ex);
+const EMB = '255,138,74';
+
+// stars shining in the observable universe: 2e23 x the fraction of the model's ordinary stars alive (whole pool,
+// so every screen size agrees), held to its running minimum so the count never rises on the way down
+const NSTEP = 0.002, NTAB = Math.ceil((14 - U0) / NSTEP) + 1, starTab = new Float64Array(NTAB);
+{
+  let a0 = 0; for (const st of stars) if (U0 >= st.ub && U0 < st.ud) a0++;
+  let run = Infinity;
+  for (let i = 0; i < NTAB; i++) {
+    const u = Math.min(14, U0 + i * NSTEP);
+    let n = 0; for (const st of stars) if (u >= st.ub && u < st.ud) n++;
+    run = Math.min(run, Math.max(2e14, 2e23 * (n / a0)));
+    starTab[i] = run;
+  }
+}
+function starsAt(u) {
+  if (u <= 14) return starTab[Math.max(0, Math.min(NTAB - 1, Math.floor((u - U0) / NSTEP + 1e-9)))];
+  if (u <= 19) return 2e14;
+  if (u <= 20.5) return Math.pow(10, Math.log10(2e14) * (1 - (u - 19) / 1.5));
+  return 0;
+}
+function galaxiesAt(u) {
+  if (u > 20) return 0;
+  const x = clamp01((u - U0) / (11.2 - U0));
+  return Math.pow(10, 12.3 * (1 - Math.pow(x, 4)));
+}
+// two significant figures, then zeros, with thousands separators; plain integer below 100
+function fmt2(n) {
+  n = Math.round(n);
+  if (n < 100) return String(n);
+  let e = Math.floor(Math.log10(n)), m = Math.round(n / Math.pow(10, e - 1));
+  if (m >= 100) { m = 10; e++; }
+  return (String(m) + '0'.repeat(e - 1)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 const NS_COL = blackbody(9500).join(','), GLOW = '255,214,170', FLASH = '255,252,245', BONE = '235,229,217';
 const TILT = -0.16, cT = Math.cos(TILT), sT = Math.sin(TILT);
 let W = 1, H = 1, D = 1, R = 100, nStars = 450, alive0 = 1, clk = 0;
@@ -197,6 +235,18 @@ function draw(u) {
     dot(toX(sp.x, sp.y), toY(sp.x, sp.y), 1.05 * d);
   }
 
+  if (u < 20.5) { // your atom
+    const k = smooth((u - 10.3) / 0.7);
+    let x = ATOM.dx + (ATOM.ex - ATOM.dx) * k, y = ATOM.dy + (ATOM.ey - ATOM.dy) * k;
+    if (u > 19) { const p = (u - 19) / 1.5, dd = p * p * 4.6; x += Math.cos(ATOM.ej) * dd; y += Math.sin(ATOM.ej) * dd; }
+    const X = toX(x, y), Y = toY(x, y), rr = 6 * d;
+    if (X > -rr * 2 && X < W + rr * 2 && Y > -rr * 2 && Y < H + rr * 2) {
+      ctx.strokeStyle = `rgba(${EMB},0.62)`; ctx.lineWidth = d;
+      ctx.beginPath(); ctx.arc(X, Y, rr, 0, TAU); ctx.stroke();
+      ctx.fillStyle = `rgba(${EMB},0.95)`; dot(X, Y, 1.6 * d);
+    }
+  }
+
   // the central black hole, its last moments, and the flash
   const cx = CX(), cy = H / 2, rb = 5.5 * d;
   if (u < 93) {
@@ -231,7 +281,22 @@ function draw(u) {
 /* ---------------- HUD ---------------- */
 const elClock = $('dscClock'), elEra = $('dscEra'), elRatio = $('dscRatio'), elTemp = $('dscTemp'), elStretch = $('dscStretch');
 const elHead = $('dscInvHead'), elPips = $('dscPips'), elList = $('dscInvList'), elLost = $('dscLost'), elProton = $('dscProton');
+const elStars = $('dscStars'), elGals = $('dscGals'), elAtom = $('dscAtom');
 let decay = true;
+const ATOM_LINES = [
+  [10.18, 'A carbon atom in your left hand. It was forged in a star that died before the Sun was born.'],
+  [10.33, "In Earth's rock or air. The oceans are gone."],
+  [11.2, 'Either boiled off into the swollen Sun and blown back out among the stars, or still in the cinder of Earth circling a white dwarf. Nobody knows which.'],
+  [15, 'In thin gas between dead and dying stars, or locked inside a cold planet.'],
+  [19.5, 'Whatever world it was part of has been pulled away from its star.'],
+  [21, 'Flung out of the galaxy with almost everything else.'],
+  [37, 'Adrift between what used to be galaxies. Nothing it could ever reach is still within range.'],
+];
+function atomLine(u) {
+  for (const [end, t] of ATOM_LINES) if (u < end) return t;
+  if (decay) return u < 40 ? 'Its protons are decaying.' : 'Gone. It lasted about 10<sup>40</sup> years.';
+  return u < 100.5 ? 'Unchanged. Still carbon.' : 'Still carbon, alone, at the temperature of empty space.';
+}
 const ITEMS = [['Other galaxies in view', 11.2], ['New stars forming', 13], ['Starlight', 14], ['Planets in orbit', 15], ['Galaxies', 20], ['Atoms', 40], ['Black holes', 100], ['Temperature differences', 100.5]];
 const endOf = (it) => (it[0] === 'Atoms' && !decay ? Infinity : it[1]);
 const lis = ITEMS.map((it) => { const li = document.createElement('li'); li.innerHTML = `<span>${it[0]}</span><span></span>`; elList.appendChild(li); return li; });
@@ -265,10 +330,21 @@ function hud(u) {
   setHTML(elClock, fmtYears(u));
   setHTML(elEra, eraOf(u));
   const x = u - U0;
-  setHTML(elRatio, x < 0.05 ? '&nbsp;' : `10<sup>${x.toFixed(1)}</sup> × the universe's present age`);
+  setHTML(elRatio, x < 0.05 ? '' : `10<sup>${x.toFixed(1)}</sup> × the universe's present age`);
   const la = log10a(u);
   setHTML(elTemp, tempHTML(u, la));
   setHTML(elStretch, stretchHTML(la));
+  // the two draining counters
+  const ns = starsAt(u), ng = galaxiesAt(u);
+  setHTML(elStars, fmt2(ns)); elStars.classList.toggle('dsc-zero', ns < 0.5);
+  setHTML(elGals, fmt2(ng)); elGals.classList.toggle('dsc-zero', ng < 0.5);
+  { const note = $('dscGalsNote'); if (note) { const t = ng >= 1e6 ? 'upper estimate' : ng >= 1.5 ? '' : ng >= 0.5 ? 'our own' : ''; if (note.textContent !== t) note.textContent = t; } }
+  // your atom
+  const al = atomLine(u);
+  if (elAtom._h !== al) {
+    const first = elAtom._h === undefined; setHTML(elAtom, al);
+    if (!reduced && !first) { elAtom.classList.remove('dsc-new'); void elAtom.offsetWidth; elAtom.classList.add('dsc-new'); }
+  }
   // inventory
   let left = 0, lost = null;
   const gone = ITEMS.map((it) => { const e = endOf(it), g = u >= e; if (!g) left++; else if (!lost || e > endOf(lost)) lost = it; return g; });
@@ -316,25 +392,28 @@ function layoutCards() {
   shown.forEach((c) => { c.el.style.top = `${Math.round(c.top)}px`; c.op = -1; c.cut = -1; });
 }
 function fadeCards(y) {
-  // captions fade out before they reach the HUD block above them; on phones they also
-  // emerge from a soft edge above the reserved strip for the .you counter
+  // captions dissolve line by line as they slide under the HUD block above them (so a long card stays
+  // readable while its top has already gone); on phones they also emerge from a soft edge above the
+  // reserved strip for the .you counter
   const stageTop = Math.max(0, Math.min(SMAX * SH, y - trackTop));
   const floor = phoneMQ.matches ? window.innerHeight - 64 : Infinity;
+  const F = phoneMQ.matches ? 44 : 60;
   for (const c of shown) {
     const rel = c.top - stageTop;
-    if ((rel > SH + 40 || rel + c.h < -40) && c.op >= 0 && c.cut === 0) continue;
-    let op = Math.round(clamp01((rel - fadeLine) / (phoneMQ.matches ? 50 : 70)) * 50) / 50;
+    const top = Math.max(0, Math.min(c.h, Math.round(fadeLine - rel)));
     const vp = trackTop + c.top - y;
     const cut = Math.max(0, Math.min(c.h, Math.round(vp + c.h - floor)));
-    if (cut >= c.h - 2) op = 0;
+    const op = top + cut >= c.h - 2 || top >= c.h - F * 0.5 ? 0 : 1;
     if (op !== c.op) {
       c.op = op;
       c.el.style.opacity = op;
       c.el.style.visibility = op === 0 ? 'hidden' : '';
     }
-    if (cut !== c.cut) {
-      c.cut = cut;
-      const m = cut > 0 ? `linear-gradient(#000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
+    const key = op ? top * 4096 + cut : -1;
+    if (key !== c.cut) {
+      c.cut = key;
+      const m = op && (top > 0 || cut > 0)
+        ? `linear-gradient(transparent ${top}px, #000 ${top + F}px, #000 ${c.h - cut - 36}px, transparent ${c.h - cut}px)` : '';
       c.el.style.webkitMaskImage = m; c.el.style.maskImage = m;
     }
   }

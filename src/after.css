@@ -1,0 +1,31 @@
+/* ---------- 08 after ---------- */
+#after .prose sup { font-size: 0.7em; vertical-align: 0.6em; }
+#after .prose sup sup { font-size: 0.86em; vertical-align: 0.7em; }
+#after .eq .f sup { font-size: 0.7em; }
+.aft-box canvas { aspect-ratio: 2 / 1; }
+@media (max-width: 620px) { .aft-box canvas { aspect-ratio: 3 / 2; } }
+.aft-inst .seg button, .aft-inst .controls > button, #aftWait { min-height: 40px; min-width: 44px; }
+#aftWait { padding-left: 28px; padding-right: 28px; }
+.aft-inst .ro .v { white-space: nowrap; }
+.aft-inst .ro .v small { font-size: 12px; }
+.aft-end { padding-bottom: 72px; }
+
+/* the final overlay */
+.aft-ov {
+  position: fixed; inset: 0; z-index: 1000; background: #050609; color: var(--bone);
+  opacity: 0; touch-action: none; cursor: pointer; outline: none; overflow: hidden;
+}
+.aft-ov.in { opacity: 1; transition: opacity 1.6s ease-in-out; }
+.aft-ov.out { opacity: 0; transition: opacity 2.4s ease-in-out; }
+.aft-ov.snap { opacity: 1; transition: none; }
+.aft-ov.cut { transition: none; }
+.aft-line {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 0 24px; opacity: 0; transition: opacity 1.2s ease-in-out; pointer-events: none;
+}
+.aft-ov.cut .aft-line { transition: none; }
+.aft-line.on { opacity: 1; }
+.aft-line > span { display: block; font-family: var(--display); font-style: italic; font-weight: 300; font-size: clamp(28px, 6vw, 64px); line-height: 1.5; letter-spacing: -0.01em; font-variation-settings: "opsz" 72; }
+.aft-line.txt > span { font-style: normal; font-weight: 400; font-size: clamp(19px, 5vw, 22px); line-height: 1.5; max-width: 30rem; letter-spacing: 0; font-variation-settings: "opsz" 24; }
+.aft-ov sup { font-size: 0.78em; vertical-align: 0.5em; }
+.aft-ov sup sup { font-size: 0.9em; vertical-align: 0.55em; }
