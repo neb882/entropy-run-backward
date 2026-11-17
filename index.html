@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entropy, Run Backward</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* One cold, dark world. Heat is the only color: particles, stars and accents use blackbody hues. */
+  /* Layout: a reading column with instruments set wide beneath it; each section is marked by the equation it demonstrates. */
+  --void: #07080c;
+  --panel: #0d0f15;
+  --line: #242836;
+  --bone: #ebe5d9;
+  --dim: #8e919c;
+  --ember: #ff8a4a;
+  --ice: #a9c8ff;
+  --display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--void); }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--bone);
+  font-family: var(--display);
+  font-size: 19px;
+  line-height: 1.58;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 72px;
+}
+a { color: var(--bone); text-decoration-color: var(--ember); text-underline-offset: 3px; }
+a:hover { color: var(--ember); }
+sup { font-size: 0.62em; line-height: 0; vertical-align: 0.62em; }
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 520px) { .wrap { padding: 0 16px; } body { font-size: 18px; } }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: 48px; padding: 56px 0 40px; align-items: start; }
+@media (max-width: 940px) { .hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 36px; } .boltz { font-size: clamp(56px, 16vw, 120px); } }
+.kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 18px; }
+.boltz {
+  font-family: var(--display); font-style: italic; font-weight: 300;
+  font-size: clamp(56px, 7.4vw, 116px); line-height: 0.92; letter-spacing: -0.025em;
+  margin: 0; white-space: nowrap; font-variation-settings: "opsz" 72;
+}
+.boltz .op { font-style: normal; font-weight: 300; color: var(--dim); padding: 0 0.06em; }
+.boltz .k { color: var(--ember); }
+.grave { font-size: 15px; line-height: 1.5; color: var(--dim); max-width: 46ch; margin: 14px 0 34px; }
+.lead { font-size: clamp(30px, 3.6vw, 44px); font-weight: 400; line-height: 1.12; margin: 0 0 16px; text-wrap: balance; letter-spacing: -0.01em; }
+.prose { max-width: 62ch; }
+.prose p { margin: 0 0 1em; }
+
+/* ---------- instruments ---------- */
+.box { position: relative; background: var(--panel); border: 1px solid var(--line); }
+canvas { display: block; width: 100%; }
+.sq { aspect-ratio: 1 / 1; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); }
+.seg button { border: 0; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.ctl-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-right: 8px; }
+button {
+  font-family: var(--mono); font-size: 13px; color: var(--bone); background: transparent;
+  border: 1px solid var(--line); padding: 8px 12px; cursor: pointer; line-height: 1.2;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+button:hover { border-color: var(--ember); }
+.seg button:hover { background: #161925; }
+button[aria-pressed="true"] { background: var(--ember); color: #160b05; }
+button.primary { border-color: var(--ember); color: var(--ember); }
+button.primary:hover { background: var(--ember); color: #160b05; }
+button:disabled { opacity: 0.35; cursor: default; }
+button:disabled:hover { background: transparent; border-color: var(--line); }
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+input[type="text"] {
+  font-family: var(--mono); font-size: 14px; color: var(--bone); background: var(--panel);
+  border: 1px solid var(--line); padding: 9px 11px; width: 100%; min-width: 0;
+}
+.readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 22px 0 0; }
+.ro { background: var(--void); padding: 12px 14px 13px; }
+.ro .l { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); line-height: 1.35; }
+.ro .v { font-family: var(--mono); font-size: 21px; font-variant-numeric: tabular-nums; margin-top: 6px; line-height: 1.25; }
+.ro .v small { font-size: 12px; color: var(--dim); }
+.gauge { height: 4px; background: var(--line); margin-top: 9px; }
+.gauge i { display: block; height: 100%; width: 100%; background: var(--ember); transform-origin: left; }
+.note { font-size: 15px; line-height: 1.55; color: var(--dim); max-width: 70ch; }
+.mini-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-top: 12px; }
+.mini { background: var(--panel); border: 1px solid var(--line); }
+.mini .cap { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); padding: 8px 10px 0; }
+.mini canvas { height: 92px; }
+
+/* ---------- sections ---------- */
+section.sec { border-top: 1px solid var(--line); padding: 64px 0 56px; }
+.eq { display: flex; align-items: baseline; gap: 16px; margin: 0 0 14px; flex-wrap: wrap; }
+.eq .n { font-family: var(--mono); font-size: 12px; color: var(--ember); letter-spacing: 0.1em; }
+.eq .f { font-family: var(--display); font-style: italic; font-size: 22px; color: var(--dim); font-variation-settings: "opsz" 36; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 4.4vw, 54px); line-height: 1.05; margin: 0 0 22px; letter-spacing: -0.015em; text-wrap: balance; font-variation-settings: "opsz" 72; }
+.inst { margin: 30px 0 30px; }
+.scaled { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; margin-top: 34px; padding-top: 20px; border-top: 1px dashed var(--line); max-width: 860px; }
+.scaled .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); padding-top: 6px; }
+.scaled p { margin: 0; font-style: italic; font-size: 21px; line-height: 1.5; font-variation-settings: "opsz" 24; }
+@media (max-width: 620px) { .scaled { grid-template-columns: minmax(0, 1fr); gap: 6px; } .mini-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* twins */
+.twins { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.twin-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--mono); font-size: 12px; color: var(--dim); margin-bottom: 7px; gap: 8px; }
+.twin-head b { color: var(--bone); font-weight: 500; letter-spacing: 0.04em; }
+.twin-head .stat { font-variant-numeric: tabular-nums; }
+.clock { font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; color: var(--bone); min-width: 15ch; }
+.clock.back { color: var(--ice); }
+.verdict { font-family: var(--mono); font-size: 13.5px; line-height: 1.6; margin-top: 14px; min-height: 3.2em; color: var(--bone); max-width: 92ch; }
+.verdict .a { color: var(--ember); }
+.verdict .b { color: var(--ice); }
+.chart { margin-top: 14px; }
+.chart canvas { height: 210px; }
+@media (max-width: 520px) { .twins { gap: 8px; } .chart canvas { height: 180px; } .twin-head { flex-direction: column; align-items: flex-start; gap: 1px; } }
+
+/* memory */
+.memory-text {
+  font-family: var(--display); font-size: clamp(26px, 3.6vw, 40px); line-height: 1.3; font-weight: 400;
+  padding: 26px 28px; min-height: 3.8em; word-break: break-word; letter-spacing: 0.005em;
+  font-variation-settings: "opsz" 48;
+}
+.memory-text span.bad { color: var(--ember); }
+.memory-text span.flash { color: #fff3e0; text-shadow: 0 0 14px var(--ember); }
+.mem-input { display: flex; gap: 10px; margin-top: 12px; }
+.mem-input input { flex: 1; }
+
+/* photons */
+.ph canvas { height: 250px; }
+
+/* cosmos */
+.cosmos canvas { height: 460px; }
+@media (max-width: 620px) { .cosmos canvas { height: 330px; } }
+.cosmos-overlay { position: absolute; left: 14px; top: 12px; right: 14px; display: flex; justify-content: space-between; gap: 12px; pointer-events: none; font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.cosmos-overlay .era { color: var(--bone); letter-spacing: 0.1em; text-transform: uppercase; }
+.slider-wrap { margin-top: 16px; }
+.bands { position: relative; height: 26px; }
+.bands div { position: absolute; top: 0; height: 100%; border-left: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); padding: 6px 0 0 7px; overflow: hidden; white-space: nowrap; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, #fff1d6 0%, var(--ember) 18%, #a33a1c 30%, #3a2a2a 62%, #1b1d26 90%, #101119 100%); }
+input[type="range"]::-moz-range-track { height: 2px; background: linear-gradient(90deg, #fff1d6 0%, var(--ember) 18%, #a33a1c 30%, #3a2a2a 62%, #1b1d26 90%, #101119 100%); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 22px; margin-top: -10px; background: var(--bone); border: 0; border-radius: 1px; }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 22px; background: var(--bone); border: 0; border-radius: 1px; }
+.ticks { position: relative; height: 18px; font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+@media (max-width: 620px) { .ticks span.opt { display: none; } .bands div { font-size: 9px; padding-left: 4px; } }
+.event { font-size: 20px; line-height: 1.5; min-height: 3em; margin: 18px 0 0; max-width: 70ch; font-style: italic; font-variation-settings: "opsz" 24; }
+
+/* coda + footer */
+.coda h2 { max-width: 20ch; }
+footer { border-top: 1px solid var(--line); padding: 36px 0 20px; }
+footer p { font-size: 14.5px; line-height: 1.6; color: var(--dim); max-width: 80ch; margin: 0 0 12px; }
+footer a { color: var(--dim); }
+
+/* the reader's own entropy */
+.you {
+  position: fixed; right: 16px; bottom: 14px; z-index: 5; max-width: calc(100% - 32px);
+  font-family: var(--mono); font-size: 12px; color: var(--dim); background: rgba(13, 15, 21, 0.92);
+  border: 1px solid var(--line); padding: 8px 12px; font-variant-numeric: tabular-nums; line-height: 1.45;
+  backdrop-filter: blur(6px);
+}
+.you b { color: var(--bone); font-weight: 500; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.you .hot { color: var(--ember); }
+@media (max-width: 520px) { .you { left: 8px; right: 8px; bottom: 8px; max-width: none; font-size: 11px; padding: 6px 10px; } .you .long { display: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ================= HERO / EXPERIMENT 1 ================= -->
+<header class="hero">
+  <div>
+    <p class="kicker">Five experiments on the second law of thermodynamics</p>
+    <h1 class="boltz" aria-label="S equals k log W">S<span class="op">=</span><span class="k">k</span> log W</h1>
+    <p class="grave">Carved on Ludwig Boltzmann's grave in Vienna. S is entropy. W counts the microscopic arrangements that look identical from outside. The constant k converts that count into joules per kelvin. Boltzmann died in 1906, a few years before experiments settled that the atoms his formula counts are real.</p>
+
+    <div class="eq"><span class="n">01</span><span class="f">S = k ln W</span></div>
+    <p class="lead">Nothing pushes them apart.</p>
+    <div class="prose">
+      <p>These 360 particles start packed into one corner. The rules they follow run the same forward and backward, and no force drives them outward. They spread because there are incomparably more ways to be spread out than to stay in the corner, and their motion wanders through arrangements without preference. It ends up where almost all the arrangements are.</p>
+      <p>Watch the energy and the work. The energy never changes. The work it could do drains away.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="box"><canvas id="heroCanvas" class="sq" aria-label="A box of 360 gas particles spreading from the lower-left corner"></canvas></div>
+    <div class="controls">
+      <button id="heroPlay" class="primary" type="button">Pause</button>
+      <button id="heroRestart" type="button">Restart</button>
+      <span><span class="ctl-label">Observer resolution</span><span class="seg" id="heroRes" role="group" aria-label="Observer resolution">
+        <button type="button" data-g="2">2×2</button><button type="button" data-g="4">4×4</button><button type="button" data-g="8" aria-pressed="true">8×8</button><button type="button" data-g="16">16×16</button>
+      </span></span>
+      <span class="seg" id="heroView" role="group" aria-label="View">
+        <button type="button" data-v="p" aria-pressed="true">Particles</button><button type="button" data-v="c">What the observer sees</button>
+      </span>
+    </div>
+    <div class="mini-row">
+      <div class="mini"><div class="cap">Entropy over time, S / S<sub>max</sub></div><canvas id="heroStrip" aria-label="Entropy over time"></canvas></div>
+      <div class="mini"><div class="cap">Speeds vs. Maxwell–Boltzmann</div><canvas id="heroHist" aria-label="Particle speed histogram with the Maxwell-Boltzmann curve"></canvas></div>
+    </div>
+  </div>
+</header>
+
+<div class="readouts" id="heroReadouts">
+  <div class="ro"><div class="l">Time</div><div class="v" id="r-t">0.0 s</div></div>
+  <div class="ro"><div class="l">Entropy, S/k = ln W</div><div class="v" id="r-s">–</div></div>
+  <div class="ro"><div class="l">Arrangements now, compared with the start</div><div class="v" id="r-w">×1</div></div>
+  <div class="ro"><div class="l">Energy in the box</div><div class="v" id="r-e">100%</div><div class="gauge"><i id="g-e"></i></div></div>
+  <div class="ro"><div class="l">Work it could still do</div><div class="v" id="r-f">–</div><div class="gauge"><i id="g-f"></i></div></div>
+  <div class="ro"><div class="l">Odds a random instant finds all 360 back in the corner</div><div class="v">1 in 10<sup>217</sup></div></div>
+</div>
+<p class="note" style="margin-top:14px">How the entropy is counted: the observer divides the box into cells and records only how many particles sit in each. W = N!/(n<sub>1</sub>! n<sub>2</sub>! …) is the number of ways to assign particles to cells that produces those counts. Change the resolution and the number changes, because entropy measures what a description leaves out. At 2×2 the starting state has exactly one arrangement and zero entropy. Velocities carry entropy too: every particle starts at the same speed, and the histogram relaxes to the Maxwell–Boltzmann curve. “Work it could still do” is the free energy above equilibrium, k·T·(S<sub>eq</sub> − S), in units of the gas's own kT.</p>
+
+<div class="scaled">
+  <div class="tag">Scaled up</div>
+  <p>When the gas has spread, every joule is still there and almost none of it can be used, because no difference is left to drive anything. The heat death of the universe means exactly this at the size of everything. It is the end of differences, with all the energy still accounted for.</p>
+</div>
+
+<!-- ================= EXPERIMENT 2 ================= -->
+<section class="sec" id="backward">
+  <div class="eq"><span class="n">02</span><span class="f">δ(t) ≈ δ<sub>0</sub> e<sup>λt</sup></span></div>
+  <h2>Run it backward.</h2>
+  <div class="prose">
+    <p>The collisions in these two boxes are computed with integer arithmetic that is exactly reversible. Reverse every velocity and the gas retraces its history bit for bit, back into the left half where it started. The laws permit un-mixing, and box A will prove it.</p>
+    <p>Box B is a copy of A with one difference. At the instant you reverse time, every particle in B lands a tiny distance off, by the amount you choose below. Try reversing at about 4 seconds. Then reset, let it run for 15 seconds, and try again.</p>
+  </div>
+
+  <div class="inst">
+    <div class="controls" style="margin:0 0 14px">
+      <button id="twGo" class="primary" type="button">Start</button>
+      <button id="twRev" type="button" disabled>Reverse time</button>
+      <button id="twReset" type="button">Reset</button>
+      <span class="clock" id="twClock" aria-live="off">t = 0.0 s</span>
+    </div>
+    <div class="controls" style="margin:0 0 16px">
+      <span><span class="ctl-label">B's error, as a fraction of the box</span><span class="seg" id="twEps" role="group" aria-label="Size of B's error">
+        <button type="button" data-e="-3" title="A millimeter, if the box were a meter">10<sup>−3</sup></button><button type="button" data-e="-6" title="A micrometer, if the box were a meter">10<sup>−6</sup></button><button type="button" data-e="-9" title="A nanometer, a few atoms across, if the box were a meter">10<sup>−9</sup></button><button type="button" data-e="-12" aria-pressed="true" title="A picometer, about a hundredth of an atom, if the box were a meter">10<sup>−12</sup></button><button type="button" data-e="-15" title="About the width of a proton, if the box were a meter">10<sup>−15</sup></button>
+      </span></span>
+      <span class="note" id="twEpsNote" style="font-size:14px">If the box were a meter wide: about a hundredth of an atom.</span>
+    </div>
+    <div class="twins">
+      <div>
+        <div class="twin-head"><b>A · exact reversal</b><span class="stat" id="twA">left half 100%</span></div>
+        <div class="box"><canvas id="twCanA" class="sq" aria-label="Box A"></canvas></div>
+      </div>
+      <div>
+        <div class="twin-head"><b>B · with error</b><span class="stat" id="twB">left half 100%</span></div>
+        <div class="box"><canvas id="twCanB" class="sq" aria-label="Box B"></canvas></div>
+      </div>
+    </div>
+    <div class="mini chart"><div class="cap">Distance between A and B while rewinding, per particle, in box widths (log scale)</div><canvas id="twChart" aria-label="Divergence between A and B over time"></canvas></div>
+    <div class="verdict" id="twVerdict" aria-live="polite">Press Start, let the gas spread, then reverse time.</div>
+  </div>
+
+  <div class="prose">
+    <p>In a gas, small errors grow exponentially. Each collision multiplies them, here by roughly tenfold every half second, which is why the chart climbs in a straight line. Every factor of a thousand in extra precision buys only a second or two more of recoverable past. Precision cannot keep up with time.</p>
+    <p>Notice what B does once its error catches up: it starts mixing again, entropy rising, even though you reversed it. Its arrow of time turns back around by itself.</p>
+    <p>Nothing in B was destroyed. The information about where the particles began is still in the box, smeared into correlations among all 150 positions and velocities. Liouville's theorem guarantees that the exact, fine-grained entropy never changes. What rises is the entropy of every description short of perfect, and every observer that can exist holds a description short of perfect.</p>
+  </div>
+  <div class="scaled">
+    <div class="tag">Scaled up</div>
+    <p>As far as we know, the basic laws of physics are reversible in the same way, and most physicists now expect that even black holes give back what falls in, scrambled into their radiation. If so, heat death erases nothing. The full record of every star and every life persists, encrypted, with the key spread across the whole universe.</p>
+  </div>
+</section>
+
+<!-- ================= EXPERIMENT 3 ================= -->
+<section class="sec" id="memory">
+  <div class="eq"><span class="n">03</span><span class="f">Q ≥ kT ln 2 per bit</span></div>
+  <h2>Keeping anything costs heat.</h2>
+  <div class="prose">
+    <p>Write something you want to keep. Each character below is stored as 6 bits, and heat jostles every bit, the way thermal noise eventually flips the bits in a real memory chip. Daniel Temkin's programming language <a href="https://entropy-lang.org/">Entropy</a> (2010) makes this the rule for code. Data decays as it's used, so a program has only a short window to say anything.</p>
+  </div>
+
+  <div class="inst">
+    <div class="box"><div class="memory-text" id="memText" aria-live="off"></div></div>
+    <form class="mem-input" id="memForm">
+      <label for="memInput" class="ctl-label" style="align-self:center;margin:0">Write</label>
+      <input type="text" id="memInput" maxlength="90" autocomplete="off" spellcheck="false" value="I was here. For a while, I kept this sentence from coming apart.">
+      <button type="submit">Store it</button>
+    </form>
+    <div class="controls">
+      <button id="memRepair" class="primary" type="button">Repair now</button>
+      <button id="memAuto" type="button" aria-pressed="false">Keep repairing</button>
+    </div>
+    <div class="readouts">
+      <div class="ro"><div class="l">Bits flipped by heat</div><div class="v" id="m-flip">0</div></div>
+      <div class="ro"><div class="l">Information left about the original</div><div class="v" id="m-info">–</div><div class="gauge"><i id="g-info"></i></div></div>
+      <div class="ro"><div class="l">Bits repaired so far</div><div class="v" id="m-rep">0</div></div>
+      <div class="ro"><div class="l">Minimum heat released by repair, at 37 °C</div><div class="v" id="m-heat">0 J</div></div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>To repair a bit you need a reference copy, and you have to discard the record of each error you fix. Rolf Landauer showed in 1961 that discarding one bit of information releases at least kT ln 2 of heat, about 3 × 10<sup>−21</sup> joules at body temperature. Real computers and brains spend thousands to millions of times more. The minimum is never zero.</p>
+    <p>You can still read the sentence after a fair amount of damage because English is redundant. Shannon estimated that each letter carries only about one bit of real information. Redundancy is how memories survive noise, and repair is where the bill comes due.</p>
+    <p>A hard drive, a cell, a habit and a self all last this way. Each is a repair loop running on an energy supply, holding a small set of states against the vast set of others. Karl Friston's free-energy principle describes living things in close to these terms, as systems that keep returning to a narrow range of states.</p>
+  </div>
+  <div class="scaled">
+    <div class="tag">Scaled up</div>
+    <p>Repair has to be paid for with a gradient, such as something hot beside something cold, or a fuel and its exhaust. At heat death no gradients remain. Every record ever written, anywhere, goes the way of this sentence when you stop repairing it.</p>
+  </div>
+</section>
+
+<!-- ================= EXPERIMENT 4 ================= -->
+<section class="sec" id="sunlight">
+  <div class="eq"><span class="n">04</span><span class="f">T<sub>Sun</sub> / T<sub>Earth</sub> ≈ 5,800 K / 255 K ≈ 20</span></div>
+  <h2>You run on the difference.</h2>
+  <div class="prose">
+    <p>Earth radiates back into space almost exactly as much energy as it absorbs from the Sun. If it didn't, it would keep heating up. What changes is the form. Sunlight arrives as relatively few high-energy photons from a 5,800 K surface. Earth sheds the same energy as roughly twenty times as many low-energy infrared photons at about 255 K. The energy out matches the energy in, and it leaves with far more ways to be arranged.</p>
+  </div>
+  <div class="inst ph">
+    <div class="box"><canvas id="phCanvas" aria-label="One visible photon arrives at Earth; about twenty infrared photons leave"></canvas></div>
+    <div class="readouts">
+      <div class="ro"><div class="l">Photons in</div><div class="v" id="p-in">0</div></div>
+      <div class="ro"><div class="l">Photons out</div><div class="v" id="p-out">0</div></div>
+      <div class="ro"><div class="l">Energy out ÷ energy in</div><div class="v">1.00</div></div>
+      <div class="ro"><div class="l">Entropy out ÷ entropy in</div><div class="v">≈ 20</div></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p>Erwin Schrödinger put it in 1944: “What an organism feeds upon is negative entropy.” Wind, rain, photosynthesis, digestion and the electrical activity you're using to read this sentence all happen inside the gap between those two kinds of light.</p>
+  </div>
+  <div class="scaled">
+    <div class="tag">Scaled up</div>
+    <p>Stars are the universe's only large supply of low-entropy light. Star formation ends in roughly a hundred trillion years, when the gas runs out. The last red dwarfs fade after that, and the gap everything lives in closes.</p>
+  </div>
+</section>
+
+<!-- ================= EXPERIMENT 5 ================= -->
+<section class="sec" id="heat-death">
+  <div class="eq"><span class="n">05</span><span class="f">10<sup>104</sup> k now · 10<sup>122</sup> k at most</span></div>
+  <h2>The heat death.</h2>
+  <div class="prose">
+    <p>The observable universe holds about 10<sup>104</sup> k of entropy today, most of it inside supermassive black holes. The most it could ever hold, set by the area of its cosmic horizon, is about 10<sup>122</sup> k. The gap is eighteen orders of magnitude. Nearly all of the running-down is still ahead. Drag the clock forward.</p>
+  </div>
+
+  <div class="inst cosmos">
+    <div class="box">
+      <canvas id="cosCanvas" aria-label="Our galaxy's neighborhood from now until the last black holes evaporate"></canvas>
+      <div class="cosmos-overlay"><span class="era" id="cosEra">Stelliferous era</span><span id="cosTime">13.8 billion years</span></div>
+    </div>
+    <div class="slider-wrap">
+      <div class="bands" id="cosBands"></div>
+      <label for="cosSlider" class="sr">Time since the Big Bang</label>
+      <input type="range" id="cosSlider" min="0" max="1000" step="1" value="0">
+      <div class="ticks" id="cosTicks"></div>
+    </div>
+    <div class="controls">
+      <button id="cosPlay" class="primary" type="button">Play</button>
+      <button id="cosNow" type="button">Back to now</button>
+      <span class="note" style="font-size:13.5px">The clock is logarithmic and compressed after 10<sup>15</sup> years. On an even log scale, everything up to the last star would fill only the first 4% of the bar.</span>
+    </div>
+    <div class="readouts">
+      <div class="ro"><div class="l">Time since the Big Bang</div><div class="v" id="c-t">–</div></div>
+      <div class="ro"><div class="l">Temperature of the sky</div><div class="v" id="c-T">–</div></div>
+      <div class="ro"><div class="l">Space stretched since today</div><div class="v" id="c-a">–</div></div>
+      <div class="ro"><div class="l">Stars still shining, compared with today</div><div class="v" id="c-n">–</div></div>
+    </div>
+    <p class="event" id="cosEvent" aria-live="polite"></p>
+  </div>
+
+  <div class="prose">
+    <p>Compress the span until the last black holes evaporate, about 10<sup>100</sup> years, into a single year. Everything that has happened so far, every star you have seen and everyone who has ever lived, would fit inside 10<sup>−82</sup> seconds. That is far shorter than a Planck time, the scale below which current physics stops making sense. We are at the very beginning.</p>
+    <p>Heat death is the box from the first experiment at the size of the universe, with all the energy still present, all of it at one temperature, and nothing left to happen. Possibly one thing remains. In a finite system that runs forever, fluctuations eventually recur, the way the entropy in that box sometimes dips. If the far future behaves like a finite thermal system, which is an open question, then over something like 10<sup>10<sup>122</sup></sup> years any arrangement at all could briefly re-form by chance. Whether heat death is an ending, or the start of an unimaginably long wait, is not settled.</p>
+  </div>
+</section>
+
+<!-- ================= CODA ================= -->
+<section class="sec coda">
+  <div class="eq"><span class="n">∞</span><span class="f">S<sub>past</sub> &lt; S<sub>now</sub></span></div>
+  <h2>Every arrow points away from one improbable fact.</h2>
+  <div class="prose">
+    <p>You remember yesterday and not tomorrow. Causes come before their effects. You age forward. Each of these is the second law at work, and each depends on entropy having been lower in the past. Follow that back and it ends at the Big Bang, which began in a state of astonishingly low entropy. Roger Penrose estimated the odds of a beginning that orderly, chosen at random, at about 1 in 10<sup>10<sup>123</sup></sup>.</p>
+    <p>No accepted theory explains it. Philosophers call the assumption the Past Hypothesis. Everything on this page rests on it, including the fact that you will remember reading this, and not the other way around.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Built after Daniel Temkin's <a href="https://entropy-lang.org/">Entropy</a> (2010), a programming language in which data decays as it is used. The gas uses bit-reversible molecular dynamics after Levesque &amp; Verlet (1993): soft disks, integer positions, forces rounded pair by pair so every step can be undone exactly.</p>
+  <p>Figures: entropy budget of the universe from Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras from Adams &amp; Laughlin, “A Dying Universe” (1997). Sky temperature and stretch assume flat ΛCDM with H<sub>0</sub> = 67.7 km/s/Mpc, Ω<sub>m</sub> = 0.31 and constant dark energy; the horizon temperature is the Gibbons–Hawking value, about 2 × 10<sup>−30</sup> K. Recurrence time after Dyson, Kleban &amp; Susskind (2002). Landauer (1961). Proton decay has never been observed; the timeline marks it as hypothetical.</p>
+  <p>The star field is an illustrative sample with realistic proportions of red dwarfs, Sun-like stars and massive stars. The counter at the bottom of the screen assumes a resting metabolism of about 100 W released as heat into a 20 °C room.</p>
+</footer>
+
+</div>
+
+<div class="you" id="you" title="Estimate: ~100 W resting metabolism released as heat into a 20 °C room">You, so far: <b id="y-e">0 kJ</b><span class="long"> turned to heat</span> · <span class="hot">+<span id="y-s">0</span> J/K<span class="long"> of entropy</span></span> · <span id="y-b">0 bits</span></div>
+
+<script>
+(() => {
+'use strict';
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (id) => document.getElementById(id);
+const MINUS = '−';
+
+/* ---------------- engine: bit-reversible soft-disk gas ---------------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const NB = [[1, 0], [1, 1], [0, 1], [-1, 1]];
+function Gas(opts) {
+  const N = opts.N, L = 1125899906842624; // 2^50 integer units per box width
+  const sig = Math.round(opts.sigma * L), R = sig / 2, dt = opts.dt, K = opts.K;
+  const c = dt * dt * K;
+  const G = Math.max(1, Math.floor(L / sig)), cell = L / G;
+  let X = new Float64Array(2 * N), P = new Float64Array(2 * N);
+  const A = new Float64Array(2 * N), head = new Int32Array(G * G), next = new Int32Array(N);
+  let pe = 0;
+  const cellOf = (v) => { const k = Math.floor(v / cell); return k < 0 ? 0 : k >= G ? G - 1 : k; };
+  function pair(i, j) {
+    const dx = X[2 * i] - X[2 * j], dy = X[2 * i + 1] - X[2 * j + 1];
+    if (dx >= sig || dx <= -sig || dy >= sig || dy <= -sig) return;
+    const r2 = dx * dx + dy * dy;
+    if (r2 >= sig * sig || r2 === 0) return;
+    const r = Math.sqrt(r2), m = (c * (sig - r)) / r;
+    const ax = Math.round(m * dx), ay = Math.round(m * dy);
+    A[2 * i] += ax; A[2 * i + 1] += ay; A[2 * j] -= ax; A[2 * j + 1] -= ay;
+    const o = (sig - r) / L; pe += 0.5 * K * o * o;
+  }
+  function accel() {
+    A.fill(0); head.fill(-1); pe = 0;
+    for (let i = 0; i < N; i++) { const h = cellOf(X[2 * i + 1]) * G + cellOf(X[2 * i]); next[i] = head[h]; head[h] = i; }
+    for (let cy = 0; cy < G; cy++) for (let cx = 0; cx < G; cx++) {
+      for (let i = head[cy * G + cx]; i !== -1; i = next[i]) {
+        for (let j = next[i]; j !== -1; j = next[j]) pair(i, j);
+        for (let q = 0; q < 4; q++) {
+          const nx = cx + NB[q][0], ny = cy + NB[q][1];
+          if (nx < 0 || nx >= G || ny >= G) continue;
+          for (let j = head[ny * G + nx]; j !== -1; j = next[j]) pair(i, j);
+        }
+      }
+    }
+    for (let i = 0; i < N; i++) for (let d = 0; d < 2; d++) {
+      const v = X[2 * i + d];
+      if (v < R) { A[2 * i + d] += Math.round(c * (R - v)); const o = (R - v) / L; pe += 0.5 * K * o * o; }
+      else if (v > L - R) { A[2 * i + d] -= Math.round(c * (v - (L - R))); const o = (v - L + R) / L; pe += 0.5 * K * o * o; }
+    }
+  }
+  function step(n) {
+    for (let s = 0; s < n; s++) {
+      accel();
+      for (let k = 0; k < 2 * N; k++) { const nx = 2 * X[k] - P[k] + A[k]; P[k] = X[k]; X[k] = nx; }
+    }
+  }
+  function init(seed, region, v0) {
+    const rnd = mulberry32(seed);
+    const [x0, y0, x1, y1] = region, w = x1 - x0, h = y1 - y0;
+    const cols = Math.ceil(Math.sqrt((N * w) / h)), rows = Math.ceil(N / cols);
+    const sx = w / cols, sy = h / rows, jit = Math.max(0, Math.min(sx, sy) - opts.sigma) * 0.4;
+    for (let i = 0; i < N; i++) {
+      const x = x0 + sx * ((i % cols) + 0.5) + (rnd() - 0.5) * jit;
+      const y = y0 + sy * (Math.floor(i / cols) + 0.5) + (rnd() - 0.5) * jit;
+      const a = rnd() * Math.PI * 2;
+      X[2 * i] = Math.round(x * L); X[2 * i + 1] = Math.round(y * L);
+      P[2 * i] = X[2 * i] - Math.round(Math.cos(a) * v0 * dt * L);
+      P[2 * i + 1] = X[2 * i + 1] - Math.round(Math.sin(a) * v0 * dt * L);
+    }
+  }
+  return {
+    N, L, dt, sigma: opts.sigma,
+    get X() { return X; }, get P() { return P; }, get pe() { return pe; },
+    step, init,
+    reverse() { const t = X; X = P; P = t; },
+    snapshot() { return { X: X.slice(), P: P.slice() }; },
+    copyFrom(g) { X.set(g.X); P.set(g.P); },
+    nudge(i, d, u) { X[2 * i + d] += u; },
+    ke() { let s = 0; for (let k = 0; k < 2 * N; k++) { const v = (X[k] - P[k]) / L / dt; s += v * v; } return s / 2; },
+  };
+}
+
+/* ---------------- shared helpers ---------------- */
+const LF = new Float64Array(1001); for (let i = 1; i <= 1000; i++) LF[i] = LF[i - 1] + Math.log(i);
+const css = getComputedStyle(document.documentElement);
+const C = {
+  void: css.getPropertyValue('--void').trim(), panel: css.getPropertyValue('--panel').trim(),
+  line: css.getPropertyValue('--line').trim(), bone: css.getPropertyValue('--bone').trim(),
+  dim: css.getPropertyValue('--dim').trim(), ember: css.getPropertyValue('--ember').trim(),
+  ice: css.getPropertyValue('--ice').trim(),
+};
+function blackbody(T) { // Tanner Helland approximation, T in kelvin
+  const t = T / 100; let r, g, b;
+  if (t <= 66) { r = 255; g = 99.4708025861 * Math.log(t) - 161.1195681661; b = t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307; }
+  else { r = 329.698727446 * Math.pow(t - 60, -0.1332047592); g = 288.1221695283 * Math.pow(t - 60, -0.0755148492); b = 255; }
+  const cl = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  return [cl(r), cl(g), cl(b)];
+}
+// relative kinetic energy q = v^2/<v^2> -> colour
+const BB = []; for (let i = 0; i < 256; i++) { const q = (i / 255) * 3; const T = 900 * Math.pow(14, Math.min(q, 3) / 3); const c = blackbody(T); BB.push(`rgb(${c[0]},${c[1]},${c[2]})`); }
+const bbIndex = (q) => Math.max(0, Math.min(255, Math.round((q / 3) * 255)));
+function fit(cv) {
+  const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  return { w, h, d };
+}
+const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
+const neg = (s) => String(s).replace('-', MINUS);
+function sci(x, digits = 1) { // HTML scientific notation
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x))), m = x / Math.pow(10, e);
+  if (e >= -2 && e <= 3) return x.toFixed(Math.max(0, digits + 1 - Math.max(0, e)));
+  return `${m.toFixed(digits)} × 10<sup>${neg(e)}</sup>`;
+}
+function pow10html(p) { // 10^p where p may be enormous
+  if (Math.abs(p) < 1e6) return `10<sup>${neg(fmtInt(p))}</sup>`;
+  const e = Math.floor(Math.log10(Math.abs(p))), m = Math.abs(p) / Math.pow(10, e);
+  return `10<sup>${p < 0 ? MINUS : ''}${m.toFixed(1)}×10<sup>${e}</sup></sup>`;
+}
+function drawParticles(ctx, gas, W, H, rPx, alpha = 1) {
+  const X = gas.X, P = gas.P, N = gas.N, L = gas.L, dt = gas.dt;
+  let m2 = 0; const v2 = new Float64Array(N);
+  for (let i = 0; i < N; i++) { const vx = (X[2 * i] - P[2 * i]) / L / dt, vy = (X[2 * i + 1] - P[2 * i + 1]) / L / dt; v2[i] = vx * vx + vy * vy; m2 += v2[i]; }
+  m2 = m2 / N || 1;
+  ctx.globalAlpha = alpha;
+  for (let i = 0; i < N; i++) {
+    ctx.fillStyle = BB[bbIndex(v2[i] / m2)];
+    ctx.beginPath(); ctx.arc((X[2 * i] / L) * W, (X[2 * i + 1] / L) * H, rPx, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  return v2;
+}
+
+/* visibility: only animate what is on screen */
+const visible = new Map();
+const io = new IntersectionObserver((es) => es.forEach((e) => visible.set(e.target, e.isIntersecting)), { rootMargin: '80px' });
+function watch(el) { visible.set(el, true); io.observe(el); }
+
+/* ================= 1. HERO GAS ================= */
+const hero = (() => {
+  const cfg = { N: 360, sigma: 0.02, dt: 1 / 480, K: 11000 };
+  const region = [0, 0.5, 0.5, 1], v0 = 0.3, seed = 7, RES = [2, 4, 8, 16];
+  const cv = $('heroCanvas'), ctx = cv.getContext('2d');
+  const strip = $('heroStrip'), sctx = strip.getContext('2d');
+  const hist = $('heroHist'), hctx = hist.getContext('2d');
+  const gas = Gas(cfg);
+  let steps = 0, acc = 0, running = !reduced, G = 8, view = 'p';
+  let S0 = {}, Smax = {}, Seq = {}, E0 = 1, samples = [], lastSample = -1, lastUI = 0;
+  const counts = new Int32Array(256);
+
+  function entropyAt(g, X) {
+    counts.fill(0, 0, g * g);
+    for (let i = 0; i < cfg.N; i++) {
+      let x = Math.floor((X[2 * i] / gas.L) * g), y = Math.floor((X[2 * i + 1] / gas.L) * g);
+      x = x < 0 ? 0 : x >= g ? g - 1 : x; y = y < 0 ? 0 : y >= g ? g - 1 : y;
+      counts[y * g + x]++;
+    }
+    let s = LF[cfg.N]; for (let k = 0; k < g * g; k++) s -= LF[counts[k]];
+    return s;
+  }
+  // equilibrium averages by sampling uniform random positions (ideal-gas estimate)
+  (function calibrate() {
+    const rnd = mulberry32(42), tmp = new Float64Array(2 * cfg.N), L = 1125899906842624;
+    for (const g of RES) {
+      const M = g * g, q = Math.floor(cfg.N / M), r = cfg.N % M;
+      Smax[g] = LF[cfg.N] - (M - r) * LF[q] - r * LF[q + 1];
+      let sum = 0; const T = 160;
+      for (let t = 0; t < T; t++) { for (let k = 0; k < 2 * cfg.N; k++) tmp[k] = rnd() * L; sum += entropyAt(g, tmp); }
+      Seq[g] = sum / T;
+    }
+  })();
+  function restart() {
+    gas.init(seed, region, v0); gas.step(0);
+    steps = 0; acc = 0; samples = []; lastSample = -1;
+    for (const g of RES) S0[g] = entropyAt(g, gas.X);
+    E0 = gas.ke(); // start has no overlaps, so PE = 0
+    sample(); draw(); ui(true);
+  }
+  function sample() {
+    const s = { t: steps * cfg.dt };
+    for (const g of RES) s[g] = entropyAt(g, gas.X);
+    samples.push(s); if (samples.length > 1400) samples.splice(0, samples.length - 1400);
+  }
+  function draw() {
+    const { w, h, d } = fit(cv);
+    ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
+    // grid and observer cells
+    const cw = w / G, ch = h / G;
+    if (view === 'c') {
+      entropyAt(G, gas.X);
+      const mean = cfg.N / (G * G);
+      for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) {
+        const n = counts[y * G + x]; if (!n) continue;
+        ctx.fillStyle = C.ember; ctx.globalAlpha = Math.min(0.9, 0.08 + (0.45 * n) / mean / 2.2);
+        ctx.fillRect(x * cw, y * ch, cw, ch);
+      }
+      ctx.globalAlpha = 1;
+      if (G <= 8) {
+        ctx.fillStyle = C.bone; ctx.font = `${Math.round(Math.min(cw, ch) * 0.26)}px "IBM Plex Mono", monospace`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) ctx.fillText(String(counts[y * G + x]), (x + 0.5) * cw, (y + 0.5) * ch);
+      }
+    }
+    ctx.strokeStyle = C.line; ctx.lineWidth = Math.max(1, d * 0.6); ctx.beginPath();
+    for (let k = 1; k < G; k++) { ctx.moveTo(Math.round(k * cw) + 0.5, 0); ctx.lineTo(Math.round(k * cw) + 0.5, h); ctx.moveTo(0, Math.round(k * ch) + 0.5); ctx.lineTo(w, Math.round(k * ch) + 0.5); }
+    ctx.stroke();
+    let v2 = null;
+    if (view === 'p') v2 = drawParticles(ctx, gas, w, h, (cfg.sigma / 2) * w);
+    drawStrip(); drawHist(v2);
+  }
+  function drawStrip() {
+    const { w, h, d } = fit(strip);
+    sctx.clearRect(0, 0, w, h);
+    const lo = Math.max(0, Math.min(S0[G] / Smax[G], 0.98) - 0.03), hi = 1.005;
+    const tMax = Math.max(20, samples.length ? samples[samples.length - 1].t : 0), tMin = Math.max(0, tMax - 60);
+    const X = (t) => 6 * d + ((t - tMin) / (tMax - tMin)) * (w - 12 * d);
+    const Y = (v) => h - 6 * d - ((v - lo) / (hi - lo)) * (h - 14 * d);
+    sctx.strokeStyle = C.line; sctx.lineWidth = d; sctx.setLineDash([3 * d, 3 * d]);
+    sctx.beginPath(); sctx.moveTo(0, Y(1)); sctx.lineTo(w, Y(1)); sctx.stroke(); sctx.setLineDash([]);
+    sctx.fillStyle = C.dim; sctx.font = `${10 * d}px "IBM Plex Mono", monospace`; sctx.textAlign = 'right'; sctx.textBaseline = 'bottom';
+    sctx.fillText('max', w - 6 * d, Y(1) - 2 * d);
+    if (samples.length < 2) return;
+    sctx.beginPath();
+    samples.forEach((s, i) => { if (s.t < tMin) return; const x = X(s.t), y = Y(s[G] / Smax[G]); i ? sctx.lineTo(x, y) : sctx.moveTo(x, y); });
+    sctx.strokeStyle = C.ember; sctx.lineWidth = 1.5 * d; sctx.stroke();
+    const last = samples[samples.length - 1];
+    sctx.fillStyle = C.ember; sctx.beginPath(); sctx.arc(X(last.t), Y(last[G] / Smax[G]), 2.5 * d, 0, 7); sctx.fill();
+  }
+  function drawHist(v2) {
+    const { w, h, d } = fit(hist);
+    hctx.clearRect(0, 0, w, h);
+    if (!v2) { // compute speeds even in observer view
+      v2 = new Float64Array(cfg.N); const X = gas.X, P = gas.P;
+      for (let i = 0; i < cfg.N; i++) { const vx = (X[2 * i] - P[2 * i]) / gas.L / gas.dt, vy = (X[2 * i + 1] - P[2 * i + 1]) / gas.L / gas.dt; v2[i] = vx * vx + vy * vy; }
+    }
+    let m2 = 0; for (let i = 0; i < cfg.N; i++) m2 += v2[i]; m2 /= cfg.N;
+    const vmax = 2.6 * Math.sqrt(m2), B = 26, bins = new Float64Array(B), dv = vmax / B;
+    for (let i = 0; i < cfg.N; i++) { const k = Math.floor(Math.sqrt(v2[i]) / dv); if (k < B) bins[k]++; }
+    const pad = 6 * d, top = 8 * d, bw = (w - 2 * pad) / B;
+    const pk = cfg.N * dv * Math.sqrt(2 / m2) * Math.exp(-0.5) * 1.15; // a bit above the theoretical peak
+    const yMax = Math.max(pk, 0.4 * Math.max(...bins));
+    const Y = (n) => h - pad - Math.min(1, n / yMax) * (h - pad - top);
+    for (let k = 0; k < B; k++) {
+      const q = ((k + 0.5) * dv) ** 2 / m2; hctx.fillStyle = BB[bbIndex(q)]; hctx.globalAlpha = 0.85;
+      hctx.fillRect(pad + k * bw + 0.5 * d, Y(bins[k]), Math.max(1, bw - d), h - pad - Y(bins[k]));
+    }
+    hctx.globalAlpha = 1;
+    // 2D Maxwell-Boltzmann: p(v) = (2v/<v^2>) exp(-v^2/<v^2>)
+    hctx.beginPath();
+    for (let i = 0; i <= 80; i++) { const v = (i / 80) * vmax, n = cfg.N * dv * (2 * v / m2) * Math.exp(-v * v / m2); const x = pad + (v / vmax) * (w - 2 * pad), y = Y(n); i ? hctx.lineTo(x, y) : hctx.moveTo(x, y); }
+    hctx.strokeStyle = C.bone; hctx.lineWidth = 1.2 * d; hctx.setLineDash([4 * d, 3 * d]); hctx.stroke(); hctx.setLineDash([]);
+  }
+  function ui(force) {
+    const now = performance.now(); if (!force && now - lastUI < 110) return; lastUI = now;
+    const S = entropyAt(G, gas.X);
+    $('r-t').textContent = `${(steps * cfg.dt).toFixed(1)} s`;
+    $('r-s').innerHTML = `${fmtInt(S)} <small>of ${fmtInt(Smax[G])} max</small>`;
+    const dS = (S - S0[G]) / Math.LN10;
+    $('r-w').innerHTML = dS < 0.05 ? '×1' : dS < 3 ? `×${fmtInt(Math.pow(10, dS))}` : `×10<sup>${fmtInt(dS)}</sup>`;
+    const E = (gas.ke() + gas.pe) / E0;
+    $('r-e').textContent = `${Math.round(E * 100)}%`; $('g-e').style.transform = `scaleX(${Math.min(1, E)})`;
+    const F0 = Seq[G] - S0[G], F = Math.max(0, Seq[G] - S);
+    $('r-f').innerHTML = `${fmtInt(F)} <small>kT</small>`; $('g-f').style.transform = `scaleX(${Math.max(0, Math.min(1, F / F0))})`;
+  }
+  function tick(dtw) {
+    if (running && visible.get(cv)) {
+      acc += Math.min(dtw, 0.05);
+      const n = Math.floor(acc / cfg.dt); acc -= n * cfg.dt;
+      gas.step(n); steps += n;
+      const st = Math.floor(steps / 24); if (st !== lastSample) { lastSample = st; sample(); }
+      draw(); ui(false);
+    }
+  }
+  $('heroPlay').addEventListener('click', () => { running = !running; $('heroPlay').textContent = running ? 'Pause' : 'Play'; });
+  $('heroRestart').addEventListener('click', () => { restart(); });
+  $('heroRes').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    G = +b.dataset.g; [...$('heroRes').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    draw(); ui(true);
+  });
+  $('heroView').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    view = b.dataset.v; [...$('heroView').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    draw();
+  });
+  if (!running) $('heroPlay').textContent = 'Play';
+  watch(cv);
+  restart();
+  return { tick, draw };
+})();
+
+/* ================= 2. TWINS ================= */
+const twins = (() => {
+  const cfg = { N: 150, sigma: 0.022, dt: 1 / 480, K: 3000 };
+  const region = [0, 0, 0.5, 1], v0 = 0.12, seed = 3;
+  const A = Gas(cfg), B = Gas(cfg);
+  const cvA = $('twCanA'), cvB = $('twCanB'), cA = cvA.getContext('2d'), cB = cvB.getContext('2d');
+  const ch = $('twChart'), cctx = ch.getContext('2d');
+  const EPS_NOTE = {
+    '-3': 'If the box were a meter wide: a millimeter.',
+    '-6': 'If the box were a meter wide: a micrometer, about a bacterium.',
+    '-9': 'If the box were a meter wide: a nanometer, a few atoms across.',
+    '-12': 'If the box were a meter wide: about a hundredth of an atom.',
+    '-15': 'If the box were a meter wide: about the width of a proton.',
+  };
+  let phase = 'ready', n = 0, T = 0, acc = 0, eps = -12, start = null, series = [], crossed = -1, lastSeries = -1;
+
+  function leftFrac(g) { let k = 0; for (let i = 0; i < cfg.N; i++) if (g.X[2 * i] / g.L < 0.5) k++; return k / cfg.N; }
+  function rms() { let s = 0; for (let k = 0; k < 2 * cfg.N; k++) { const d = (A.X[k] - B.X[k]) / A.L; s += d * d; } return Math.sqrt(s / cfg.N); }
+  function reset() {
+    A.init(seed, region, v0); B.copyFrom(A); start = A.snapshot();
+    phase = 'ready'; n = 0; T = 0; acc = 0; series = []; crossed = -1; lastSeries = -1;
+    $('twGo').disabled = false; $('twGo').textContent = 'Start'; $('twRev').disabled = true;
+    $('twVerdict').innerHTML = 'Press Start, let the gas spread, then reverse time.';
+    setEpsEnabled(true); draw(); clock();
+  }
+  function setEpsEnabled(on) { [...$('twEps').children].forEach((b) => (b.disabled = !on)); }
+  function clock() {
+    const t = (n * cfg.dt).toFixed(1), el = $('twClock');
+    el.classList.toggle('back', phase === 'back');
+    el.textContent = phase === 'back' ? `t = ${t} s  ◂ rewinding` : phase === 'done' ? 't = 0.0 s  · back at the start' : `t = ${t} s`;
+    $('twA').textContent = `left half ${Math.round(leftFrac(A) * 100)}%`;
+    $('twB').textContent = `left half ${Math.round(leftFrac(B) * 100)}%`;
+  }
+  function draw() {
+    for (const [cv, ctx, g] of [[cvA, cA, A], [cvB, cB, B]]) {
+      const { w, h, d } = fit(cv);
+      ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = C.line; ctx.lineWidth = d; ctx.setLineDash([4 * d, 4 * d]);
+      ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke(); ctx.setLineDash([]);
+      drawParticles(ctx, g, w, h, (cfg.sigma / 2) * w);
+    }
+    drawChart();
+  }
+  function drawChart() {
+    const { w, h, d } = fit(ch);
+    cctx.clearRect(0, 0, w, h);
+    const padL = 46 * d, padR = 12 * d, padT = 30 * d, padB = 22 * d;
+    const yLo = -16.5, yHi = 0, tMax = Math.max(T * cfg.dt, 1);
+    const X = (t) => padL + (t / tMax) * (w - padL - padR);
+    const Y = (v) => padT + ((yHi - v) / (yHi - yLo)) * (h - padT - padB);
+    cctx.font = `${10 * d}px "IBM Plex Mono", monospace`; cctx.fillStyle = C.dim; cctx.textAlign = 'right'; cctx.textBaseline = 'middle';
+    cctx.strokeStyle = C.line; cctx.lineWidth = d;
+    for (let v = -15; v <= yHi; v += 3) {
+      cctx.beginPath(); cctx.moveTo(padL, Y(v)); cctx.lineTo(w - padR, Y(v)); cctx.stroke();
+      cctx.fillText(v === 0 ? '1' : `10${superDigits(v)}`, padL - 6 * d, Y(v));
+    }
+    const ys = Math.log10(cfg.sigma);
+    cctx.strokeStyle = C.ice; cctx.globalAlpha = 0.6; cctx.setLineDash([5 * d, 4 * d]);
+    cctx.beginPath(); cctx.moveTo(padL, Y(ys)); cctx.lineTo(w - padR, Y(ys)); cctx.stroke(); cctx.setLineDash([]); cctx.globalAlpha = 1;
+    cctx.fillStyle = C.ice; cctx.textAlign = 'left'; cctx.textBaseline = 'bottom';
+    cctx.fillText('one particle diameter', padL + 6 * d, Y(ys) - 3 * d);
+    cctx.fillStyle = C.dim; cctx.textAlign = 'center'; cctx.textBaseline = 'top';
+    if (T > 0) for (let s = 0; s <= tMax + 1e-9; s += tMax > 12 ? 2 : 1) cctx.fillText(`${s}s`, X(s), h - padB + 6 * d);
+    else { cctx.textAlign = 'left'; cctx.fillText('Starts when you reverse time.', padL + 6 * d, padT - 22 * d); }
+    if (series.length > 1) {
+      cctx.beginPath();
+      series.forEach((p, i) => { const x = X(p[0]), y = Y(Math.max(yLo, Math.min(1, p[1]))); i ? cctx.lineTo(x, y) : cctx.moveTo(x, y); });
+      cctx.strokeStyle = C.ember; cctx.lineWidth = 1.8 * d; cctx.stroke();
+      const p = series[series.length - 1];
+      cctx.fillStyle = C.ember; cctx.beginPath(); cctx.arc(X(p[0]), Y(Math.max(yLo, Math.min(1, p[1]))), 3 * d, 0, 7); cctx.fill();
+    }
+  }
+  function superDigits(v) { const m = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' }; return String(v).split('').map((c) => m[c]).join(''); }
+  function slope() { // decades per second, fitted where the error is clearly growing
+    const pts = series.filter((p) => p[1] > eps + 1 && p[1] < Math.log10(cfg.sigma));
+    if (pts.length < 5) return null;
+    const k = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / k, my = pts.reduce((a, p) => a + p[1], 0) / k;
+    const sxy = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0), sxx = pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+    return sxx > 0 ? sxy / sxx : null;
+  }
+  function finish() {
+    phase = 'done'; $('twRev').disabled = true; $('twGo').disabled = true;
+    A.reverse(); B.reverse(); // point velocities forward again; A is now bit-identical to its starting state
+    let exact = 0; for (let i = 0; i < cfg.N; i++) if (A.X[2 * i] === start.X[2 * i] && A.X[2 * i + 1] === start.X[2 * i + 1] && A.P[2 * i] === start.P[2 * i] && A.P[2 * i + 1] === start.P[2 * i + 1]) exact++;
+    const lf = leftFrac(B), sec = (T * cfg.dt).toFixed(1), sl = slope();
+    const rate = sl ? ` The error grew about tenfold every ${(1 / sl).toFixed(1)} s.` : '';
+    let b;
+    if (lf >= 0.97) b = `<span class="b">B:</span> ${Math.round(lf * 100)}% back in the left half. You reversed after ${sec} s, soon enough that ${crossed < 0 ? "its error never grew past a particle's width" : 'its error only caught up in the last moments'}.${rate} Reset and wait longer.`;
+    else if (lf >= 0.8) b = `<span class="b">B:</span> ${Math.round(lf * 100)}% back in the left half. It got most of the way, then its error caught up after ${crossed.toFixed(1)} s of rewinding.${rate}`;
+    else b = `<span class="b">B:</span> ${Math.round(lf * 100)}% back in the left half, about what a fully mixed gas shows. Its error passed a particle's width after ${crossed.toFixed(1)} s of rewinding, and from then on B mixed forward again with nothing left to remember.${rate} Reset to try another precision.`;
+    $('twVerdict').innerHTML = `<span class="a">A:</span> ${exact} of ${cfg.N} particles back at their exact starting coordinates, to the last of 50 binary digits.<br>${b}`;
+    clock();
+  }
+  function tick(dtw) {
+    if (phase !== 'fwd' && phase !== 'back') return;
+    if (!visible.get(cvA)) return;
+    acc += Math.min(dtw, 0.05);
+    let k = Math.floor(acc / cfg.dt); acc -= k * cfg.dt;
+    if (phase === 'fwd') { A.step(k); n += k; B.copyFrom(A); }
+    else {
+      k = Math.min(k, n); A.step(k); B.step(k); n -= k;
+      const tb = (T - n) * cfg.dt, idx = Math.floor((T - n) / 24);
+      if (idx !== lastSeries) {
+        lastSeries = idx; const v = Math.log10(rms() || 1e-30); series.push([tb, v]);
+        if (crossed < 0 && v > Math.log10(cfg.sigma)) crossed = tb;
+      }
+      if (n === 0) { draw(); finish(); return; }
+    }
+    draw(); clock();
+  }
+  $('twGo').addEventListener('click', () => {
+    if (phase === 'ready') { phase = 'fwd'; $('twRev').disabled = false; $('twGo').textContent = 'Pause'; $('twVerdict').innerHTML = 'Running forward. A and B are identical so far. Reverse time whenever you like.'; }
+    else if (phase === 'fwd') { phase = 'paused'; $('twGo').textContent = 'Resume'; }
+    else if (phase === 'paused') { phase = 'fwd'; $('twGo').textContent = 'Pause'; }
+  });
+  $('twRev').addEventListener('click', () => {
+    if (phase !== 'fwd' && phase !== 'paused') return;
+    if (n === 0) return;
+    T = n; B.copyFrom(A); A.reverse(); B.reverse();
+    const r = mulberry32(99), u = Math.max(1, Math.round(Math.pow(10, eps) * A.L));
+    for (let i = 0; i < cfg.N; i++) { const th = r() * Math.PI * 2; B.nudge(i, 0, Math.round(Math.cos(th) * u)); B.nudge(i, 1, Math.round(Math.sin(th) * u)); }
+    series = [[0, Math.log10(rms())]]; crossed = -1; lastSeries = 0;
+    phase = 'back'; $('twRev').disabled = true; $('twGo').disabled = true; setEpsEnabled(false);
+    $('twVerdict').innerHTML = `Rewinding ${(T * cfg.dt).toFixed(1)} s of history. A's velocities were reversed exactly; every particle in B is off by 10<sup>${neg(eps)}</sup> of the box.`;
+  });
+  $('twReset').addEventListener('click', reset);
+  $('twEps').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    eps = +b.dataset.e; [...$('twEps').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    $('twEpsNote').textContent = EPS_NOTE[b.dataset.e];
+  });
+  watch(cvA);
+  reset();
+  return { tick, draw };
+})();
+
+/* ================= 3. MEMORY ================= */
+const memory = (() => {
+  const ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ .,'?!-:;()\""; // 64 symbols, 6 bits each
+  const IDX = new Map([...ALPHA].map((c, i) => [c, i]));
+  const RATE = 1 / 180; // flips per bit per second (toy value; real memory is engineered to be far slower)
+  const KTLN2 = 1.380649e-23 * 310.15 * Math.LN2; // J per bit at 37 °C
+  const el = $('memText');
+  let orig = [], cur = [], spans = [], flashes = [], pending = [], flipped = 0, repaired = 0, auto = false, lastUI = 0, rng = mulberry32(5);
+
+  function clean(s) { return [...s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-')].filter((c) => IDX.has(c)).join('').slice(0, 90); }
+  function store(text) {
+    const t = clean(text) || 'I was here.';
+    orig = [...t].map((c) => IDX.get(c)); cur = orig.slice(); flashes = orig.map(() => 0); pending = [];
+    el.textContent = '';
+    spans = cur.map((v) => { const s = document.createElement('span'); s.textContent = ALPHA[v]; el.appendChild(s); return s; });
+    flipped = 0; repaired = 0; render(true);
+  }
+  function hamming() { let h = 0; for (let i = 0; i < cur.length; i++) { let x = cur[i] ^ orig[i]; while (x) { h += x & 1; x >>= 1; } } return h; }
+  function repairAll() {
+    const h = hamming(); repaired += h; cur = orig.slice(); pending = []; render(true);
+  }
+  function render(force) {
+    const now = performance.now();
+    for (let i = 0; i < cur.length; i++) {
+      const s = spans[i], ch = ALPHA[cur[i]];
+      if (s.textContent !== ch) s.textContent = ch;
+      s.className = now - flashes[i] < 380 ? 'flash' : cur[i] !== orig[i] ? 'bad' : '';
+    }
+    if (!force && now - lastUI < 120) return; lastUI = now;
+    const nb = orig.length * 6, h = hamming(), f = h / nb;
+    const H = f <= 0 || f >= 1 ? 0 : -f * Math.log2(f) - (1 - f) * Math.log2(1 - f);
+    const info = nb * (1 - H);
+    $('m-flip').innerHTML = `${fmtInt(h)} <small>of ${fmtInt(nb)} bits</small>`;
+    $('m-info').innerHTML = `≈ ${fmtInt(info)} <small>bits</small>`;
+    $('g-info').style.transform = `scaleX(${Math.max(0, info / nb)})`;
+    $('m-rep').textContent = fmtInt(repaired);
+    $('m-heat').innerHTML = repaired ? `${sci(repaired * KTLN2, 1)} J` : '0 J';
+  }
+  function poisson(l) { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rng(); } while (p > L); return k - 1; }
+  function tick(dtw) {
+    if (!visible.get(el)) return;
+    const nb = orig.length * 6, flips = poisson(nb * RATE * Math.min(dtw, 0.1)), now = performance.now();
+    for (let f = 0; f < flips; f++) {
+      const b = Math.floor(rng() * nb), i = Math.floor(b / 6), bit = 1 << (b % 6);
+      cur[i] ^= bit; flashes[i] = now; flipped++;
+      pending.push([now, i, bit]);
+    }
+    if (auto) { // fix each error shortly after it appears; each fix discards one bit of error record
+      pending = pending.filter(([t, i, bit]) => {
+        if (now - t < 650) return true;
+        if ((cur[i] ^ orig[i]) & bit) { cur[i] ^= bit; repaired++; }
+        return false;
+      });
+    } else if (pending.length > 4000) pending = pending.slice(-4000);
+    render(false);
+  }
+  $('memForm').addEventListener('submit', (e) => { e.preventDefault(); store($('memInput').value); });
+  $('memRepair').addEventListener('click', repairAll);
+  $('memAuto').addEventListener('click', () => {
+    auto = !auto; $('memAuto').setAttribute('aria-pressed', String(auto));
+    $('memAuto').textContent = auto ? 'Keep repairing: on' : 'Keep repairing';
+    if (auto) repairAll();
+  });
+  watch(el);
+  store($('memInput').value);
+  return { tick };
+})();
+
+/* ================= 4. PHOTONS ================= */
+const photons = (() => {
+  const cv = $('phCanvas'), ctx = cv.getContext('2d');
+  let t = 0, nin = 0, nout = 0, inbound = null, out = [], nextAt = 0.4, rng = mulberry32(17);
+  const sunC = blackbody(5800), irC = [255, 92, 52];
+  function geom(w, h) { return { sx: -h * 0.55, sy: h / 2, sr: h * 0.8, ex: w * 0.66, ey: h / 2, er: Math.min(h * 0.11, w * 0.06) }; }
+  function draw() {
+    const { w, h, d } = fit(cv), g = geom(w, h);
+    ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
+    // the Sun, mostly off-canvas
+    const grd = ctx.createRadialGradient(g.sx, g.sy, g.sr * 0.6, g.sx, g.sy, g.sr * 1.25);
+    grd.addColorStop(0, `rgba(${sunC},1)`); grd.addColorStop(0.45, `rgba(${sunC},0.95)`); grd.addColorStop(1, `rgba(${sunC},0)`);
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(g.sx, g.sy, g.sr * 1.25, 0, 7); ctx.fill();
+    // Earth
+    ctx.fillStyle = '#1d2b3f'; ctx.beginPath(); ctx.arc(g.ex, g.ey, g.er, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(169,200,255,0.5)'; ctx.lineWidth = 1.5 * d; ctx.stroke();
+    // photon in
+    if (inbound) {
+      const x = g.sx + g.sr * 0.98 + (g.ex - g.er - (g.sx + g.sr * 0.98)) * inbound.p, y = g.ey + inbound.dy * (1 - inbound.p) * h;
+      const tail = 60 * d;
+      const lg = ctx.createLinearGradient(x - tail, y, x, y); lg.addColorStop(0, 'rgba(255,248,232,0)'); lg.addColorStop(1, 'rgba(255,248,232,0.9)');
+      ctx.strokeStyle = lg; ctx.lineWidth = 3 * d; ctx.beginPath(); ctx.moveTo(x - tail, y + inbound.dy * h * 0.02); ctx.lineTo(x, y); ctx.stroke();
+      ctx.fillStyle = '#fffaf0'; ctx.beginPath(); ctx.arc(x, y, 4 * d, 0, 7); ctx.fill();
+    }
+    // photons out
+    for (const p of out) {
+      const r = g.er + p.dist * Math.max(w, h) * 0.55, x = g.ex + Math.cos(p.a) * r, y = g.ey + Math.sin(p.a) * r;
+      ctx.fillStyle = `rgba(${irC},${Math.max(0, 0.8 - p.dist * 0.75)})`;
+      ctx.beginPath(); ctx.arc(x, y, 1.8 * d, 0, 7); ctx.fill();
+    }
+    ctx.font = `${11 * d}px "IBM Plex Mono", monospace`; ctx.fillStyle = C.dim; ctx.textAlign = 'center';
+    ctx.fillText('Earth · 255 K', g.ex, g.ey + g.er + 18 * d);
+    ctx.textAlign = 'left'; ctx.fillText('Sun · 5,800 K', 14 * d, 20 * d);
+  }
+  function tick(dtw) {
+    if (!visible.get(cv)) return;
+    const dt = Math.min(dtw, 0.05); t += dt;
+    if (!inbound && t >= nextAt) inbound = { p: 0, dy: (rng() - 0.5) * 0.3 };
+    if (inbound) {
+      inbound.p += dt / 1.1;
+      if (inbound.p >= 1) {
+        inbound = null; nin++; nextAt = t + 1.4;
+        const n = 20 + Math.floor(rng() * 5) - 2; nout += n; // about twenty, on average
+        for (let i = 0; i < n; i++) out.push({ a: rng() * Math.PI * 2, dist: 0, v: 0.22 + rng() * 0.1 });
+      }
+    }
+    out.forEach((p) => (p.dist += p.v * dt)); out = out.filter((p) => p.dist < 1.1);
+    $('p-in').textContent = fmtInt(nin); $('p-out').textContent = fmtInt(nout);
+    draw();
+  }
+  watch(cv); draw();
+  return { tick, draw };
+})();
+
+/* ================= 5. COSMIC CLOCK ================= */
+const cosmos = (() => {
+  const cv = $('cosCanvas'), ctx = cv.getContext('2d'), slider = $('cosSlider');
+  const U0 = Math.log10(13.79e9);
+  const KS = [0, 0.32, 0.5, 0.62, 0.9, 1.0], KU = [U0, 15, 20, 40, 100, 110];
+  const s2u = (s) => { for (let i = 1; i < KS.length; i++) if (s <= KS[i]) return KU[i - 1] + ((s - KS[i - 1]) / (KS[i] - KS[i - 1])) * (KU[i] - KU[i - 1]); return KU[KU.length - 1]; };
+  const u2s = (u) => { for (let i = 1; i < KU.length; i++) if (u <= KU[i]) return KS[i - 1] + ((u - KU[i - 1]) / (KU[i] - KU[i - 1])) * (KS[i] - KS[i - 1]); return 1; };
+  // cosmology: flat ΛCDM, H0 = 67.7, Ωm = 0.31, ΩΛ = 0.69
+  const Om = 0.31, OL = 0.69, H0 = 1 / 14.443e9; // per year
+  const lnSinh = (x) => (x > 20 ? x - Math.LN2 : Math.log(Math.sinh(x)));
+  const lnA = (t) => Math.log(Om / OL) / 3 + (2 / 3) * lnSinh(1.5 * Math.sqrt(OL) * H0 * t);
+  const lnA0 = lnA(13.79e9);
+  const log10a = (u) => (lnA(Math.pow(10, u)) - lnA0) / Math.LN10;
+  const TDS = 2.2e-30;
+
+  const ERAS = [[U0, 14, 'Stelliferous'], [14, 40, 'Degenerate'], [40, 100, 'Black hole'], [100, 110, 'Dark']];
+  const EVENTS = [
+    [U0, 'Now, 13.8 billion years in. Stars of every mass are forming and burning, and the sky glows at 2.7 K with the afterlight of the Big Bang.'],
+    [10.33, 'About 8 billion years from now the Sun has swollen into a red giant, shed its outer layers, and settled as a white dwarf.'],
+    [11.0, 'Accelerating expansion has carried every galaxy outside our merged Local Group beyond view. The rest of the universe can no longer be seen from here.'],
+    [12.6, 'The last of the Sun-like stars are long gone. Small, dim red dwarfs, which burn for trillions of years, hold most of the remaining light.'],
+    [13.0, 'Red dwarfs, the longest-lived stars of all, begin to burn out after about ten trillion years.'],
+    [14.0, 'Star formation has ended because the gas has run out. The last stars fade. What remains are white dwarfs, brown dwarfs, neutron stars and black holes.'],
+    [15.0, 'Close passes between dead stars have stripped nearly every planet from its orbit. The white dwarfs have cooled into black dwarfs, too cold to see.'],
+    [19.0, 'The galaxy evaporates. Chance encounters fling most remnants into intergalactic space, and the rest fall into the central black hole.'],
+    [37.0, 'If protons decay, which many theories predict and no experiment has yet seen, ordinary matter is dissolving into radiation and lighter particles.'],
+    [40.0, 'Black holes are the only large objects left. Each one slowly loses mass to Hawking radiation.'],
+    [67.0, 'Stellar-mass black holes, which take 10⁶⁷ years or more, are evaporating one by one, each ending in a brief, hot burst of radiation.'],
+    [99.5, 'The largest supermassive black holes evaporate, around 10¹⁰⁰ years. Each, near the end, briefly glows hotter than any star ever did.'],
+    [100.5, 'A thin, cooling scatter of photons, neutrinos, electrons and positrons drifts through an exponentially expanding void. The temperature settles toward that of the cosmic horizon itself, about 2 × 10⁻³⁰ K. No gradient remains to drive anything.'],
+  ];
+
+  // procedural neighborhood, fixed by seed
+  const rnd = mulberry32(2026);
+  const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const stars = [];
+  for (let i = 0; i < 420; i++) {
+    const r = rnd(), type = r < 0.74 ? 'red' : r < 0.95 ? 'sun' : 'big';
+    const ub = rnd() < 0.72 ? 8.7 + rnd() * 1.4 : U0 + Math.pow(rnd(), 2.2) * (13.9 - U0);
+    const life = type === 'red' ? 12.0 + rnd() * 1.1 : type === 'sun' ? 9.7 + rnd() * 0.8 : 7.0 + rnd() * 2.0;
+    const ud = Math.log10(Math.pow(10, ub) + Math.pow(10, life));
+    const T = type === 'red' ? 2900 + rnd() * 700 : type === 'sun' ? 4800 + rnd() * 1600 : 11000 + rnd() * 14000;
+    const ang = rnd() * Math.PI * 2, rad = Math.min(1.25, Math.abs(gauss()) * 0.42 + 0.03);
+    stars.push({
+      type, ub, ud, col: blackbody(T), ang, rad,
+      b: type === 'red' ? 0.32 + rnd() * 0.25 : type === 'sun' ? 0.7 + rnd() * 0.25 : 0.95 + rnd() * 0.3,
+      sz: type === 'red' ? 1.0 + rnd() * 0.5 : type === 'sun' ? 1.4 + rnd() * 0.6 : 1.9 + rnd() * 0.8,
+      rem: type === 'big' ? (rnd() < 0.35 ? 'bh' : 'ns') : 'wd',
+      evap: 66.5 + rnd() * 3.5, decay: 37 + rnd() * 3, eject: 18.6 + rnd() * 1.6, falls: rnd() < 0.1,
+      tw: rnd() * 100,
+    });
+  }
+  const galaxies = []; for (let i = 0; i < 26; i++) galaxies.push({ x: rnd(), y: rnd(), r: 6 + rnd() * 14, e: 0.3 + rnd() * 0.6, rot: rnd() * 3, fade: 10.55 + rnd() * 0.55, b: 0.18 + rnd() * 0.22 });
+  const motes = []; for (let i = 0; i < 70; i++) motes.push({ x: rnd(), y: rnd(), ph: rnd() * 10, vx: (rnd() - 0.5) * 0.004, vy: (rnd() - 0.5) * 0.004, life: 100 + rnd() * 10, c: rnd() < 0.5 ? [255, 120, 80] : [169, 200, 255] });
+
+  let s = 0, playing = false, clockT = 0, lastU = -1;
+  const aliveNow = stars.filter((st) => U0 >= st.ub && U0 < st.ud).length;
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  function pos(st, u, w, h) {
+    let rr = st.rad;
+    if (u > st.eject) { const p = clamp01((u - st.eject) / 1.3); rr = st.falls ? rr * (1 - p) : rr * (1 + p * p * 3); }
+    return [w / 2 + Math.cos(st.ang) * rr * w * 0.44, h / 2 + Math.sin(st.ang) * rr * h * 0.3 * 0.9 + Math.cos(st.ang) * rr * h * 0.06];
+  }
+  function draw() {
+    const u = s2u(s), { w, h, d } = fit(cv);
+    ctx.fillStyle = '#050609'; ctx.fillRect(0, 0, w, h);
+    // distant galaxies, fading from view as expansion carries them off
+    for (const gx of galaxies) {
+      const a = gx.b * clamp01((gx.fade - u) / 0.45); if (a <= 0) continue;
+      const red = clamp01((u - U0) / (gx.fade - U0));
+      const cc = [Math.round(230 - 30 * red), Math.round(215 - 120 * red), Math.round(200 - 150 * red)];
+      ctx.save(); ctx.translate(gx.x * w, gx.y * h); ctx.rotate(gx.rot); ctx.scale(1, gx.e);
+      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, gx.r * d);
+      gr.addColorStop(0, `rgba(${cc},${a})`); gr.addColorStop(1, `rgba(${cc},0)`);
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, gx.r * d, 0, 7); ctx.fill(); ctx.restore();
+    }
+    // diffuse glow of the living galaxy
+    let alive = 0; for (const st of stars) if (u >= st.ub && u < st.ud) alive++;
+    const glow = alive / stars.length;
+    if (glow > 0) {
+      ctx.save(); ctx.translate(w / 2, h / 2); ctx.scale(1, 0.32);
+      const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.4);
+      gr.addColorStop(0, `rgba(255,214,170,${0.16 * glow + 0.02})`); gr.addColorStop(1, 'rgba(255,214,170,0)');
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, w * 0.4, 0, 7); ctx.fill(); ctx.restore();
+    }
+    const twk = reduced ? 0 : clockT;
+    for (const st of stars) {
+      if (u < st.ub) continue;
+      const [x, y] = pos(st, u, w, h);
+      if (x < -20 || x > w + 20 || y < -20 || y > h + 20) continue;
+      if (st.falls && u > st.eject + 1.3) continue;
+      if (u < st.ud) { // shining
+        const b = st.b * (0.88 + 0.12 * Math.sin(twk * 2.3 + st.tw));
+        ctx.fillStyle = `rgba(${st.col},${Math.min(1, b)})`;
+        ctx.beginPath(); ctx.arc(x, y, st.sz * d, 0, 7); ctx.fill();
+        if (st.type === 'big') { ctx.fillStyle = `rgba(${st.col},0.12)`; ctx.beginPath(); ctx.arc(x, y, st.sz * 3.2 * d, 0, 7); ctx.fill(); }
+        continue;
+      }
+      const age = u - st.ud;
+      if (st.rem === 'bh') {
+        if (u > st.evap + 0.25) continue;
+        const flare = clamp01(1 - Math.abs(u - st.evap) / 0.25);
+        if (u < st.evap) { ctx.strokeStyle = `rgba(235,229,217,${0.22 + 0.5 * flare})`; ctx.lineWidth = 0.8 * d; ctx.beginPath(); ctx.arc(x, y, 1.7 * d, 0, 7); ctx.stroke(); }
+        if (flare > 0) { ctx.fillStyle = `rgba(255,250,240,${flare})`; ctx.beginPath(); ctx.arc(x, y, (1 + 3 * flare) * d, 0, 7); ctx.fill(); }
+        continue;
+      }
+      if (u > st.decay) continue; // remnants dissolve if protons decay
+      const fade = st.rem === 'ns' ? 1.6 : 3.2, k = clamp01(age / fade);
+      if (k < 1) { const c = blackbody(st.rem === 'ns' ? 9000 - 6000 * k : 9000 - 7200 * k); ctx.fillStyle = `rgba(${c},${0.55 * (1 - k) + 0.06})`; ctx.beginPath(); ctx.arc(x, y, 0.9 * d, 0, 7); ctx.fill(); }
+      else { ctx.fillStyle = `rgba(120,120,135,${0.12 * clamp01((st.decay - u) / 2)})`; ctx.beginPath(); ctx.arc(x, y, 0.8 * d, 0, 7); ctx.fill(); }
+    }
+    // the central supermassive black hole
+    if (u < 100.2) {
+      const flare = clamp01(1 - Math.abs(u - 100) / 0.35), feed = clamp01((15 - u) / 5);
+      const cx = w / 2, cy = h / 2, R = 4.5 * d;
+      if (feed > 0) { const gr = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 5); gr.addColorStop(0, `rgba(255,170,110,${0.3 * feed})`); gr.addColorStop(1, 'rgba(255,170,110,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R * 5, 0, 7); ctx.fill(); }
+      if (u < 100) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill(); ctx.strokeStyle = `rgba(235,229,217,${0.35 + 0.6 * flare})`; ctx.lineWidth = d; ctx.stroke(); }
+      if (flare > 0) { const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (2 + 10 * flare)); gr.addColorStop(0, `rgba(255,252,245,${flare})`); gr.addColorStop(1, 'rgba(255,252,245,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R * (2 + 10 * flare), 0, 7); ctx.fill(); }
+    }
+    // dark era motes
+    if (u > 99.8) {
+      const dens = clamp01((u - 99.8) / 0.7);
+      for (const m of motes) {
+        if (u > m.life) continue;
+        const x = ((m.x + m.vx * twk) % 1 + 1) % 1 * w, y = ((m.y + m.vy * twk) % 1 + 1) % 1 * h;
+        const a = dens * 0.35 * clamp01((m.life - u) / 3) * (0.5 + 0.5 * Math.sin(twk * 1.3 + m.ph));
+        ctx.fillStyle = `rgba(${m.c},${a})`; ctx.fillRect(x, y, d, d);
+      }
+    }
+    readouts(u, alive);
+  }
+  function fmtYears(u) {
+    const t = Math.pow(10, u);
+    if (u < 12) return `${(t / 1e9).toFixed(t < 1e11 ? 1 : 0)} billion years`;
+    if (u < 15) return `${(t / 1e12).toFixed(t < 1e13 ? 1 : 0)} trillion years`;
+    return `10<sup>${u.toFixed(u < 20 ? 1 : 0)}</sup> years`;
+  }
+  function readouts(u, alive) {
+    if (Math.abs(u - lastU) < 1e-6) return; lastU = u;
+    $('c-t').innerHTML = fmtYears(u); $('cosTime').innerHTML = fmtYears(u);
+    const era = ERAS.find((e) => u >= e[0] - 1e-9 && u < e[1]) || ERAS[ERAS.length - 1];
+    $('cosEra').textContent = `${era[2]} era`;
+    const la = log10a(u), lT = Math.log10(2.725) - la;
+    $('c-T').innerHTML = lT > Math.log10(TDS) ? (lT > -1 ? `${Math.pow(10, lT).toFixed(2)} K` : `${sci(Math.pow(10, lT), 1)} K`) + (u < 10.2 ? ' <small>CMB</small>' : '') : `2 × 10<sup>${MINUS}30</sup> K <small>horizon</small>`;
+    $('c-a').innerHTML = la < 0.005 ? '×1' : la < 4 ? `×${Math.pow(10, la).toFixed(la < 1 ? 2 : 0)}` : `×${pow10html(la)}`;
+    $('c-n').textContent = alive ? `${Math.round((alive / aliveNow) * 100)}%` : 'none';
+    let ev = EVENTS[0][1]; for (const e of EVENTS) if (u >= e[0] - 1e-9) ev = e[1];
+    if ($('cosEvent').textContent !== ev) $('cosEvent').textContent = ev;
+  }
+  function setS(v) { s = clamp01(v); slider.value = String(Math.round(s * 1000)); draw(); }
+  // bands and ticks
+  ERAS.forEach(([a, b, name]) => { const el = document.createElement('div'); el.style.left = `${u2s(a) * 100}%`; el.style.width = `${(u2s(b) - u2s(a)) * 100}%`; el.textContent = name; $('cosBands').appendChild(el); });
+  [[U0, 'now', 0], [12, '10¹²', 1], [14, '10¹⁴', 0], [20, '10²⁰', 0], [30, '10³⁰', 1], [40, '10⁴⁰', 0], [67, '10⁶⁷', 1], [100, '10¹⁰⁰', 0]].forEach(([u, lab, opt]) => {
+    const sp = document.createElement('span'); sp.style.left = `${u2s(u) * 100}%`; sp.innerHTML = u === U0 ? 'now' : `10<sup>${Math.round(u)}</sup>`; if (opt) sp.className = 'opt';
+    if (u === U0) sp.style.transform = 'none';
+    $('cosTicks').appendChild(sp);
+  });
+  slider.addEventListener('input', () => { s = +slider.value / 1000; if (playing) togglePlay(); draw(); });
+  function togglePlay() { playing = !playing; if (playing && s >= 1) s = 0; $('cosPlay').textContent = playing ? 'Pause' : 'Play'; }
+  $('cosPlay').addEventListener('click', togglePlay);
+  $('cosNow').addEventListener('click', () => { if (playing) togglePlay(); setS(0); });
+  function tick(dtw) {
+    if (!visible.get(cv)) return;
+    const dt = Math.min(dtw, 0.05); clockT += dt;
+    if (playing) { setS(s + dt * (s < 0.32 ? 0.022 : 0.045)); if (s >= 1) togglePlay(); return; }
+    if (!reduced) draw();
+  }
+  watch(cv); setS(0);
+  return { tick, draw };
+})();
+
+/* ================= YOU ================= */
+(() => {
+  const t0 = performance.now(), Pw = 100, Troom = 293.15, kln2 = 1.380649e-23 * Math.LN2;
+  function upd() {
+    const s = (performance.now() - t0) / 1000, E = Pw * s, dS = E / Troom, bits = dS / kln2;
+    $('y-e').textContent = E < 1000 ? `${Math.round(E)} J` : `${(E / 1000).toFixed(E < 1e4 ? 1 : 0)} kJ`;
+    $('y-s').textContent = dS < 10 ? dS.toFixed(1) : fmtInt(dS);
+    $('y-b').innerHTML = bits > 0 ? `≈ 10<sup>${Math.log10(bits).toFixed(1)}</sup> bits` : '0 bits';
+  }
+  upd(); setInterval(upd, 1000);
+})();
+
+/* ================= LOOP ================= */
+let last = performance.now();
+function loop(now) {
+  const dt = (now - last) / 1000; last = now;
+  hero.tick(dt); twins.tick(dt); memory.tick(dt); photons.tick(dt); cosmos.tick(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { hero.draw(); twins.draw(); photons.draw(); cosmos.draw(); }, 120); });
+})();
+</script>
+</body>
+</html>
