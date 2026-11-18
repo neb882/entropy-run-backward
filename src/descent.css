@@ -1,7 +1,4 @@
-/* ---------- 07 descent ---------- */
-.dsc-start { margin-top: 26px; }
-.dsc-skip { font-family: var(--mono); font-size: 13px; padding: 11px 4px; }
-.dsc-note { margin: 22px 0 0; }
+/* ---------- Act II · descent ---------- */
 
 .dsc {
   /* gutters shared by HUD and captions: the page's .wrap text edge */
@@ -16,6 +13,7 @@
 }
 .dsc-stage { position: sticky; top: 0; height: var(--dsc-h); overflow: hidden; background: #050609; }
 .dsc-stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.dsc-stage canvas[hidden] { display: none; }
 .dsc-hud { position: absolute; inset: 0; pointer-events: none; color: var(--bone); }
 .dsc-hud button { pointer-events: auto; }
 
@@ -77,11 +75,9 @@
 .dsc-proton { transition: opacity .5s; }
 .dsc-proton .ctl-label { display: block; margin: 0 0 6px; }
 .dsc-proton:not(.dsc-on) { visibility: hidden; opacity: 0; }
-.dsc-hud .seg button, .dsc-auto-hud { font-size: 12.5px; min-height: 40px; padding: 8px 11px; }
-.dsc-auto-hud { background: rgba(5, 6, 9, 0.6); }
+.dsc-hud .seg button { font-size: 12.5px; min-height: 40px; padding: 8px 11px; background: rgba(5, 6, 9, 0.6); }
 /* a quieter pressed state: over the dark stretches this should not be the brightest thing on screen */
 .dsc-hud .seg button[aria-pressed="true"] { background: rgba(255, 138, 74, 0.14); color: var(--ember); }
-.dsc-auto[hidden] { display: none; }
 
 /* depth rail: uniform in log time, 10^10 to 10^108 */
 .dsc-rail { position: absolute; right: 14px; top: 30px; bottom: 78px; width: 60px; font-family: var(--mono); color: var(--dim); }
@@ -101,7 +97,7 @@
 .dsc-card {
   position: absolute; top: 0; left: var(--dsc-gl);
   width: min(29rem, calc(100% - var(--dsc-gl) - var(--dsc-gr) - var(--dsc-sw) - 40px));
-  background: rgba(7, 8, 12, 0.78); border-left: 1px solid var(--line);
+  background: rgba(7, 8, 12, 0.8); border-left: 1px solid var(--line);
   padding: 14px 20px 17px 19px; pointer-events: auto;
 }
 .dsc-card[hidden] { display: none; }
@@ -109,8 +105,6 @@
 .dsc-when sup { font-size: 0.78em; vertical-align: 0.5em; }
 .dsc-card p { margin: 0; font-size: 20px; line-height: 1.45; font-variation-settings: "opsz" 24; text-wrap: pretty; }
 .dsc-card.dsc-voice p { font-style: italic; }
-
-.dsc-outro { padding-top: 56px; }
 
 @media (max-width: 760px) {
   .dsc-top { display: block; position: absolute; top: 12px; left: 16px; right: 16px; }
@@ -143,9 +137,7 @@
   .dsc-ctl { margin-top: 10px; display: block; }
   .dsc-proton { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .dsc-proton .ctl-label { font-size: 9.5px; margin: 0; }
-  /* the HUD's own Descend button sits level with the clock, at the right */
-  .dsc-auto-hud { position: absolute; top: -3px; right: 0; }
-  .dsc-hud .seg button, .dsc-auto-hud { font-size: 11.5px; padding: 8px 9px; }
+  .dsc-hud .seg button { font-size: 11.5px; padding: 8px 9px; }
   .dsc-rail { right: 4px; width: 46px; bottom: 76px; }
   .dsc-rl, .dsc-rd { right: 10px; }
   .dsc-rt { right: 11px; }
@@ -163,7 +155,7 @@
   .dsc-hud button { white-space: nowrap; }
 }
 @media (max-width: 380px) {
-  .dsc-hud .seg button, .dsc-auto-hud { padding: 8px 7px; font-size: 11px; }
+  .dsc-hud .seg button { padding: 8px 7px; font-size: 11px; }
   .dsc-cnt { column-gap: 9px; }
   .dsc-n { font-size: 12.5px; }
   .dsc-cs { font-size: 9px; }
@@ -173,7 +165,7 @@
 @media (max-width: 760px) and (max-height: 720px) {
   .dsc-top { top: 8px; }
   .dsc-clock { font-size: 27px; }
-  .dsc-sub { margin-top: 9px; line-height: 1.4; } /* clears the Descend button beside the clock */
+  .dsc-sub { margin-top: 6px; line-height: 1.4; }
   .dsc-counts { margin-top: 8px; gap: 6px; }
   .dsc-atom { margin-top: 8px; font-size: 14px; }
   .dsc-side { margin-top: 8px; }

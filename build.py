@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Assemble src/base.html + module fragments into one self-contained page.
-usage: python3 build.py [-o OUT] [--skip NAME ...]   (NAME is inventory, ledger, descent or after)"""
+usage: python3 build.py [-o OUT] [--skip NAME ...]   (NAME is gfx, sky, inventory, ledger, descent, wait or after)"""
 import argparse, os, re
 ap = argparse.ArgumentParser(); ap.add_argument('-o', default='index.html'); ap.add_argument('--skip', nargs='*', default=[])
 a = ap.parse_args(); here = os.path.dirname(os.path.abspath(__file__)); src = os.path.join(here, 'src')

@@ -1,22 +1,12 @@
-<!-- ================= 07 THE DESCENT ================= -->
-<div class="wrap">
-<section class="sec dsc-intro" id="heat-death">
-  <div class="eq"><span class="n">07</span><span class="f">t → ∞</span></div>
-  <h2>The descent.</h2>
-  <div class="prose">
-    <p>You have seen the mechanism, and you have seen how much there is. This is what happens to it. Below this line, scrolling moves time forward, and the ruler on the right is logarithmic: each mark is ten times later than the one before. The picture is our own neighbourhood of the universe.</p>
-    <p>It takes a while. Most of it is dark. That is the accurate proportion, and even so it is compressed: at the pace of the first screens, the whole descent would run more than four times as long.</p>
-  </div>
-  <div class="controls dsc-start">
-    <button type="button" class="primary dsc-auto" id="dscAuto">Descend for me</button>
-    <a href="#after" class="dsc-skip">Skip to the end</a>
-  </div>
-  <p class="note dsc-note">Assumes dark energy stays constant, the standard model of cosmology today. Captions marked by a choice depend on physics nobody has measured yet.</p>
-</section>
-</div>
+<!-- ================= ACT II · WHAT BECOMES OF IT ================= -->
+<section class="film-card" id="heat-death"><div class="wrap">
+  <p class="film-act">II</p><h2>What becomes of it.</h2>
+  <p class="film-line">Scrolling now moves time forward. The ruler on the right is logarithmic: each mark is ten times later than the last.</p>
+</div></section>
 
 <div class="dsc" id="dscTrack">
   <div class="dsc-stage" id="dscStage">
+    <canvas id="dscGL" class="dsc-gl" aria-hidden="true"></canvas>
     <canvas id="dscSky" role="img" aria-label="Our galaxy's neighbourhood, seen from outside, at the time shown on the clock"></canvas>
     <div class="dsc-hud">
       <div class="dsc-top" id="dscTop">
@@ -47,7 +37,6 @@
             <div class="dsc-lost" id="dscLost">Lost: nothing yet</div>
           </div>
           <div class="dsc-ctl">
-            <button type="button" class="dsc-auto dsc-auto-hud" id="dscAuto2">Descend for me</button>
             <div class="dsc-proton" id="dscProton">
               <span class="ctl-label" id="dscProtonLab">Unknown physics</span>
               <span class="seg" role="group" aria-labelledby="dscProtonLab"><button type="button" id="dscDecay" aria-pressed="true">Protons decay</button><button type="button" id="dscLast" aria-pressed="false">Protons last</button></span>
@@ -96,15 +85,6 @@
     <div class="dsc-card" data-u="100.0"><div class="dsc-when">10<sup>100</sup> years</div><p>Far beyond the horizon, the largest black holes of all, tens of billions of Suns, are evaporating. After them, no difference in temperature worth the name is left anywhere.</p></div>
     <div class="dsc-card" data-u="102.0"><div class="dsc-when">The dark era</div><p>A thin scatter of photons, neutrinos, electrons and positrons in an exponentially growing void, all at the temperature of the horizon: about <span style="white-space:nowrap">2 × 10<sup>−30</sup> kelvin</span>. The energy is all still here. None of it can do anything.</p></div>
     <div class="dsc-card dsc-voice" data-u="106.0"><p>The picture has not failed to load. This is what there is to show.</p></div>
+    <div class="dsc-card" data-u="107.6"><div class="dsc-when">Heat death</div><p>Every joule that ever existed is still here, all of it at one temperature.</p></div>
   </div>
-</div>
-
-<div class="wrap">
-<section class="sec dsc-outro">
-  <div class="prose">
-    <p>That is heat death. It is the box of gas from the first experiment at the size of the universe, with every joule still present, everything at one temperature, and nothing left to happen.</p>
-    <p>Scroll back up and the stars return, because this page is a recording. The universe is the box B from the second experiment. It keeps no copy precise enough to rewind.</p>
-  </div>
-  <div class="scaled"><div class="tag">Scaled down</div><p>You are reading this at the very top of the ruler, in the brief interval when stars burn, matter holds together, and one thing can still be hotter than another.</p></div>
-</section>
 </div>

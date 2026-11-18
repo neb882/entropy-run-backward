@@ -4,7 +4,13 @@ const ENT = window.ENT;
 const { $, MINUS, reduced, mulberry32, blackbody, fit, fmtInt, sci, pow10html } = ENT;
 const track = $('dscTrack');
 if (!track) return;
-const cv = $('dscSky'), ctx = cv.getContext('2d');
+const cv = $('dscSky'), glCv = $('dscGL');
+// light goes through the shared WebGL2 renderer; the 2D canvas on top carries rings, the atom marker and motes.
+// Without WebGL2 the 2D canvas draws the whole sky, as before.
+let gl = null;
+try { gl = ENT.gfx && glCv ? ENT.gfx.create(glCv, { maxDpr: 1.5 }) : null; } catch (e) { gl = null; }
+if (!gl && glCv) glCv.hidden = true;
+const ctx = cv.getContext('2d');
 const stage = $('dscStage'), rail = $('dscRail'), topBox = $('dscTop');
 const phoneMQ = window.matchMedia('(max-width: 760px)');
 
@@ -68,7 +74,7 @@ for (let i = 0; i < POOL; i++) {
   const T = type === RED ? 2900 + rnd() * 700 : type === SUN ? 4900 + rnd() * 1500 : 10000 + rnd() * 16000;
   const rem = type === BIG ? (rnd() < 0.35 ? BH : NS) : WD;
   stars.push({
-    type, dx, dy, ex, ey, ub, ud, rem,
+    type, dx, dy, ex, ey, ub, ud, rem, T,
     col: blackbody(T).join(','),
     b: type === RED ? 0.36 + rnd() * 0.26 : type === SUN ? 0.72 + rnd() * 0.25 : 1,
     sz: type === RED ? 0.85 + rnd() * 0.45 : type === SUN ? 1.2 + rnd() * 0.55 : 1.6 + rnd() * 0.8,
@@ -138,7 +144,10 @@ let W = 1, H = 1, D = 1, R = 100, nStars = 450, alive0 = 1, clk = 0;
 
 function place(st, u) { // galaxy-plane position in units of R, or null once gone
   const k = smooth((u - 10.3) / 0.7);
-  let x = st.dx + (st.ex - st.dx) * k, y = st.dy + (st.ey - st.dy) * k;
+  return evolve(st.dx + (st.ex - st.dx) * k, st.dy + (st.ey - st.dy) * k, st, u);
+}
+// after u = st.ue a remnant is either flung out (most) or sinks toward the centre and is swallowed by u = st.uv
+function evolve(x, y, st, u) {
   if (u > st.ue) {
     if (st.falls) {
       const r0 = Math.hypot(x, y) || 1e-6, a0 = Math.atan2(y, x);
@@ -162,7 +171,7 @@ const toX = (x, y) => CX() + (x * cT - y * sT) * R;
 const toY = (x, y) => H / 2 + (x * sT + y * cT) * R;
 function dot(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
 
-function draw(u) {
+function draw2d(u) {
   const d = D;
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#050609'; ctx.fillRect(0, 0, W, H);
@@ -278,6 +287,402 @@ function draw(u) {
   }
 }
 
+/* ================= the sky through the shared renderer (gfx + sky) ================= */
+const rndG = mulberry32(7717); // its own stream: the model above, and the star counter built on it, stay exactly as they were
+const gaussR = (r) => { let a = 0; while (a === 0) a = r(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(TAU * r()); };
+// blackbody -> linear rgb with the brightest channel at 1
+const LUT_N = 512, LT0 = 800, LT1 = 40000, LUT = new Float32Array(LUT_N * 3);
+for (let i = 0; i < LUT_N; i++) {
+  const c = blackbody(LT0 * Math.pow(LT1 / LT0, i / (LUT_N - 1))).map((v) => Math.pow(v / 255, 2.2));
+  const m = Math.max(c[0], c[1], c[2], 1e-6);
+  LUT[i * 3] = c[0] / m; LUT[i * 3 + 1] = c[1] / m; LUT[i * 3 + 2] = c[2] / m;
+}
+const LLN = Math.log(LT1 / LT0);
+const lutIdx = (T) => Math.max(0, Math.min(LUT_N - 1, Math.round((Math.log(T / LT0) / LLN) * (LUT_N - 1)))) * 3;
+const PHONE = Math.min(window.innerWidth, (window.screen && window.screen.width) || 1e9) <= 480;
+const TILT_G = 1.047, ROT0 = 0.6, CAP = 40;
+const aliveAt = (u) => (u < 14 ? starsAt(u) / 2e23 : 0);   // the Stars shining counter's fraction
+const relaxAt = (u) => clamp01((u - 10.3) / 0.7);   // ENT.sky eases it
+const skyOK = () => !!(ENT.sky && ENT.sky.galaxy && ENT.sky.drawGalaxy && ENT.sky.project);
+const PB = new Float32Array(4200 * 9);                       // one scratch buffer, uploaded by each call before reuse
+let PN = 0;
+function pt(x, y, size, T, a) { const o = PN++ * 7, j = lutIdx(T); PB[o] = x; PB[o + 1] = y; PB[o + 2] = size; PB[o + 3] = LUT[j]; PB[o + 4] = LUT[j + 1]; PB[o + 5] = LUT[j + 2]; PB[o + 6] = a; }
+function ptRGB(x, y, size, r, g, b, a) { const o = PN++ * 7; PB[o] = x; PB[o + 1] = y; PB[o + 2] = size; PB[o + 3] = r; PB[o + 4] = g; PB[o + 5] = b; PB[o + 6] = a; }
+function flushPts(g, o) { if (PN) g.points(PB, PN, o); PN = 0; }
+
+// frame geometry: where the galaxy sits for a frame of W x H device px at d device px per CSS px
+const geoms = new Map();
+function geomFor(W, H, d) {
+  const key = `${W}x${H}@${d}`;
+  let G = geoms.get(key);
+  if (G) return G;
+  const cw = W / d, ch = H / d, narrow = cw <= 760;
+  G = { W, H, d, cw, ch, narrow };
+  if (narrow) { G.x = W * 0.5; G.y = H * 0.62; G.radius = Math.min(cw * 0.5, ch * 0.3) * d; G.pa = -0.5; }
+  else { G.x = W * (cw >= 900 ? 0.585 : 0.5); G.y = H * 0.5; G.radius = Math.min(cw * 0.33, ch * 0.52) * d; G.pa = -0.3; }
+  G.R0 = G.radius * 0.95;   // radius of the old point model, used only when ENT.sky is missing
+  if (geoms.size > 6) geoms.clear();
+  geoms.set(key, G);
+  return G;
+}
+const oX = (G, x, y) => G.x + (x * cT - y * sT) * G.R0;
+const oY = (G, x, y) => G.y + (x * sT + y * cT) * G.R0;
+
+/* distant galaxies: small oriented smudges that redden and drop out in step with the Galaxies in view counter */
+const BGN = 150, BG = [];
+for (let i = 0; i < BGN; i++) {
+  const big = rndG() < 0.1;
+  BG.push({ x: 0.02 + rndG() * 0.96, y: 0.02 + rndG() * 0.96, s: big ? 9 + rndG() * 10 : 2.4 + Math.pow(rndG(), 1.7) * 6.5,
+    T: 4300 * Math.pow(9500 / 4300, rndG()), a: big ? 0.035 + rndG() * 0.04 : 0.05 + rndG() * 0.1,
+    ang: rndG() * Math.PI, sq: 0.2 + rndG() * 0.75, thr: rndG() });
+}
+function drawBG(g, G, u, E) {
+  const f = Math.log10(Math.max(1, galaxiesAt(u))) / 12.3, x = clamp01((u - U0) / (11.2 - U0));
+  const n = G.cw <= 480 ? 60 : BGN, d = G.d;
+  let q = 0;
+  for (let i = 0; i < n; i++) {
+    const b = BG[i], v = clamp01((f - b.thr) / 0.06);
+    if (v <= 0) continue;
+    const j = lutIdx(b.T * (1 - 0.5 * x)), a = (b.a * v * (1 - 0.4 * x)) / E, X = b.x * G.W, Y = b.y * G.H, sz = b.s * d * (1 - 0.25 * x);
+    for (let k = 0; k < 2; k++) {   // a faint body and a brighter core
+      const o = q * 9; q++;
+      PB[o] = X; PB[o + 1] = Y; PB[o + 2] = k ? sz * 0.32 : sz; PB[o + 3] = LUT[j]; PB[o + 4] = LUT[j + 1]; PB[o + 5] = LUT[j + 2];
+      PB[o + 6] = k ? a * 1.5 : a * 0.55; PB[o + 7] = b.ang; PB[o + 8] = k ? Math.min(1, b.sq * 1.5) : b.sq;
+    }
+  }
+  if (q) g.smudges(PB, q);
+}
+
+/* supernovae: brief white glints in the disk, deterministic in u, never more than two at once */
+const GLINTS = [];
+for (let i = 0; i < 40; i++) GLINTS.push({ u: 10.16 + (i + 0.2 + rndG() * 0.6) * (0.54 / 40), w: 0.0055 + rndG() * 0.0025, f: rndG(), I: 5 + rndG() * 9 });
+for (let i = 0; i < 9; i++) GLINTS.push({ u: 10.75 + (i + 0.2 + rndG() * 0.6) * (1.25 / 9), w: 0.006 + rndG() * 0.004, f: rndG(), I: 5 + rndG() * 7 });
+/* dead stars colliding: a few white flashes in the dark */
+const BANGS = [];
+for (let i = 0; i < 6; i++) BANGS.push({ u: 14.35 + (i + 0.15 + rndG() * 0.7) * (4.5 / 6), w: 0.03 + rndG() * 0.02, f: rndG(), I: 2 + rndG() * 2 });
+
+/* the galaxy model, built once when ENT.sky is there */
+let GAL = null, ATOMI = -1, REM = null, L0 = 0;
+const PO = { x: 0, y: 0, radius: 1, tilt: TILT_G, pa: 0, rot: ROT0, alive: 1, relax: 0, alpha: 1, detail: 1 };
+const tmpS = { x: 0, y: 0, z: 0, T: 0, kind: 0 }, tmpP = { x: 0, y: 0 };
+function setPO(G, u, rot) {
+  PO.x = G.x; PO.y = G.y; PO.radius = G.radius; PO.pa = G.pa; PO.tilt = TILT_G; PO.rot = rot;
+  PO.alive = aliveAt(u); PO.relax = relaxAt(u); PO.alpha = 1; PO.detail = 1;
+}
+function uOfAlive(a) {   // first u at which the alive fraction has fallen to a
+  let lo = 0, hi = NTAB - 1;
+  if (starTab[hi] / 2e23 > a) return 14;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (starTab[m] / 2e23 <= a) hi = m; else lo = m + 1; }
+  return U0 + lo * NSTEP;
+}
+function galaxy() {
+  if (GAL) return GAL;
+  if (!skyOK()) return null;
+  try { GAL = ENT.sky.galaxy({ seed: 2026, count: PHONE ? 25000 : 60000 }); } catch (e) { GAL = null; }
+  if (!GAL) return null;
+  const n = GAL.count;
+  // the atom: one star about 55% of the way out, on the near side (lowest on screen with the disk seen from above)
+  const U = { x: 0, y: 0, radius: 1, tilt: TILT_G, pa: 0, rot: ROT0, alive: 1, relax: 0, alpha: 1, detail: 1 };
+  let best = -1, by = -Infinity;
+  const T = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    GAL.star(i, tmpS); T[i] = tmpS.T;
+    const r = Math.hypot(tmpS.x, tmpS.y);
+    if (r > 0.53 && r < 0.57 && Math.abs(tmpS.z) < 0.03) {
+      ENT.sky.project(GAL, i, U, tmpP);
+      if (tmpP.y > by) { by = tmpP.y; best = i; }
+    }
+  }
+  ATOMI = best;
+  // remnants: a few thousand stars of the model, each going out when the alive fraction passes its temperature rank
+  const sorted = Float32Array.from(T).sort();
+  const rankOf = (t) => { let lo = 0, hi = n - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (sorted[m] < t) lo = m + 1; else hi = m; } return lo / Math.max(1, n - 1); };
+  const r2 = mulberry32(4471), M = Math.min(n, PHONE ? 1300 : 3200), list = [];
+  for (let j = 0; j < M; j++) {
+    const i = Math.min(n - 1, Math.floor(((j + r2()) * n) / M));
+    list.push({ i, T: T[i], ud: uOfAlive(rankOf(T[i]) / 1.05), wdEnd: 15.3 + r2(), b: 0.55 + r2() * 0.9, type: WD,
+      ue: 19 + r2(), falls: r2() < 0.1, sinkR: 0.05 + r2() * 0.13, uv: 20.7 + r2() * 9.1, turns: (1 + r2() * 2) * (r2() < 0.5 ? 1 : -1),
+      jit: gaussR(r2) * 0.35, ox: 0, oy: 0, ej: 0 });
+  }
+  list.slice().sort((a, b) => b.T - a.T).forEach((r, k) => { if (k < (PHONE ? 7 : 12)) r.type = BH; else if (k < M * 0.05) r.type = NS; });
+  REM = { list, key: '' };
+  const res = ENT.sky.drawGalaxy(null, GAL, U);   // with no context it only reports the light (relative to alive = 1)
+  L0 = (res && res.luminosity) || 1;
+  return GAL;
+}
+function remBase(G, rot) {   // relaxed positions of the remnants, as offsets in units of the galaxy radius
+  const key = `${G.pa}|${rot}`;
+  if (REM.key === key) return;
+  REM.key = key;
+  const U = { x: 0, y: 0, radius: 1, tilt: TILT_G, pa: G.pa, rot, alive: 1, relax: 1, alpha: 1, detail: 1 };
+  for (const r of REM.list) { ENT.sky.project(GAL, r.i, U, tmpP); r.ox = tmpP.x; r.oy = tmpP.y; r.ej = Math.atan2(r.oy, r.ox) + r.jit; }
+}
+
+/* exposure from the luminosity drawGalaxy reports (cached by its inputs), capped */
+const lumCache = new Map();
+function expAt(u, rot) {
+  if (u >= 14 || !galaxy()) return 1;
+  const a = aliveAt(u), rx = Math.round(relaxAt(u) * 200) / 200, key = a + '|' + rx;
+  let L = lumCache.get(key);
+  if (L === undefined) {
+    const U = { x: 0, y: 0, radius: 1, tilt: TILT_G, pa: -0.3, rot: rot == null ? ROT0 : rot, alive: a, relax: rx, alpha: 1, detail: 1 };
+    const res = ENT.sky.drawGalaxy(null, GAL, U);
+    L = (res && res.luminosity) || 0;
+    if (lumCache.size > 4000) lumCache.clear();
+    lumCache.set(key, L);
+  }
+  // the picture's brightness follows the stars that are left (alive^2: the survivors are the faint ones); the model's own light falls later
+  // and faster, so the exposure rises toward the end to keep the last red dwarfs a visible glow
+  return Math.max(0.05, Math.min(CAP, (a * a * L0) / Math.max(L, L0 * 1e-9)));
+}
+const FO = { exposure: 1, bloom: 0.85, bloomRadius: 1, threshold: 0.75 };
+function frameOpts(u, E) {
+  const fl = u > 92.6 && u < 93.4;
+  FO.exposure = E; FO.bloom = fl ? 0.7 : 0.85; FO.bloomRadius = fl ? 1.6 : 1; FO.threshold = fl ? 0.6 : 0.75;
+  return FO;
+}
+
+/* the old point model through the renderer, for when ENT.sky is missing */
+const alive0All = Math.max(1, stars.reduce((n, st) => n + (U0 >= st.ub && U0 < st.ud ? 1 : 0), 0));
+const GLOWL = [1, 0.67, 0.4];
+function drawOldGL(g, G, u, E) {
+  const d = G.d, nP = PHONE ? 450 : POOL;
+  if (u < 14) {
+    let alive = 0; for (let i = 0; i < POOL; i++) { const st = stars[i]; if (u >= st.ub && u < st.ud) alive++; }
+    const A = alive / alive0All, k = relaxAt(u);
+    if (A > 0.002) {
+      let q = 0;
+      for (const [sz, a] of [[1.9, 0.025], [0.42, 0.09]]) {
+        const o = q++ * 9;
+        PB[o] = G.x; PB[o + 1] = G.y; PB[o + 2] = sz * G.R0; PB[o + 3] = GLOWL[0]; PB[o + 4] = GLOWL[1]; PB[o + 5] = GLOWL[2];
+        PB[o + 6] = (a * A) / E; PB[o + 7] = TILT; PB[o + 8] = 0.3 + 0.48 * k;
+      }
+      g.smudges(PB, q);
+    }
+  }
+  if (u >= 30) return;
+  for (let i = 0; i < nP; i++) {
+    const st = stars[i];
+    if (u < st.ub) continue;
+    const p = place(st, u); if (!p) continue;
+    const X = oX(G, p[0], p[1]), Y = oY(G, p[0], p[1]);
+    if (X < -12 || X > G.W + 12 || Y < -12 || Y > G.H + 12) continue;
+    if (u < st.ud) {
+      const a = st.b * clamp01((u - st.ub) / 0.03) * (0.25 + 0.75 * clamp01((st.ud - u) / 0.025));
+      pt(X, Y, st.sz * 2.2 * d, st.T, (a * a * 1.4) / E);
+      continue;
+    }
+    const born = clamp01((u - st.ud) / 0.025);
+    if (st.rem === WD) {
+      if (u >= st.wdEnd) continue;
+      const k = clamp01((u - st.ud) / (st.wdEnd - st.ud)), Tw = st.wdT * Math.pow(2000 / st.wdT, k);
+      const a = u < 14 ? 0.3 - 0.17 * clamp01((u - st.ud) / Math.max(0.01, 14 - st.ud)) : 0.13 * (1 - clamp01((u - 14) / (st.wdEnd - 14)));
+      pt(X, Y, 1.6 * d, Tw, (a * a * born) / E);
+    } else if (st.rem === NS) pt(X, Y, 1.6 * d, 9500, (0.02 * born) / E);
+  }
+  flushPts(g);
+}
+
+/* remnants of the sky model: faint points where stars were, cooling, then flung out or swallowed */
+function drawRemnants(g, G, u, E) {
+  const d = G.d, sz = 1.7 * d;
+  for (const r of REM.list) {
+    if (r.type === BH) continue;
+    const t0 = Math.max(r.ud, 13.3), fi = clamp01((u - t0) / 0.3);
+    if (fi <= 0) continue;
+    const p = evolve(r.ox, r.oy, r, u); if (!p) continue;
+    const X = G.x + p[0] * G.radius, Y = G.y + p[1] * G.radius;
+    if (X < -8 || X > G.W + 8 || Y < -8 || Y > G.H + 8) continue;
+    let I, Tc;
+    if (r.type === NS) { I = 0.009; Tc = 9500; }
+    else {
+      const k = clamp01((u - 13.6) / (r.wdEnd - 13.6));
+      Tc = 15000 * Math.pow(2300 / 15000, k);
+      I = u < r.wdEnd ? 0.075 * Math.pow(0.045, k) : 0.0028;
+    }
+    pt(X, Y, sz, Tc, (I * r.b * fi) / E);
+  }
+  flushPts(g);
+}
+// a star of the model on screen at time u (index chosen by a fraction f)
+function starAt(G, u, rot, f, out) {
+  if (GAL) { setPO(G, u, rot); ENT.sky.project(GAL, Math.min(GAL.count - 1, Math.floor(f * GAL.count)), PO, out); return out; }
+  const st = stars[Math.floor(f * (PHONE ? 450 : POOL))], p = place(st, u) || [0, 0];
+  out.x = oX(G, p[0], p[1]); out.y = oY(G, p[0], p[1]); return out;
+}
+// the atom: follows one fixed star through the relaxation, then leaves with the ejected remnants
+function atomAt(G, u, rot, out) {
+  let ang;
+  if (GAL && ATOMI >= 0) {
+    setPO(G, u, rot); ENT.sky.project(GAL, ATOMI, PO, out);
+    ang = Math.atan2(out.y - G.y, out.x - G.x);
+  } else {
+    const k = relaxAt(u), x = ATOM.dx + (ATOM.ex - ATOM.dx) * k, y = ATOM.dy + (ATOM.ey - ATOM.dy) * k;
+    out.x = oX(G, x, y); out.y = oY(G, x, y);
+    ang = Math.atan2(Math.sin(ATOM.ej) * cT + Math.cos(ATOM.ej) * sT, Math.cos(ATOM.ej) * cT - Math.sin(ATOM.ej) * sT);
+  }
+  if (u > 19) { const p = (u - 19) / 1.5, dd = p * p * 4.6 * G.radius; out.x += Math.cos(ang) * dd; out.y += Math.sin(ang) * dd; }
+  return out;
+}
+
+// everything luminous at time u, into the current frame of g (between the caller's begin and end)
+function drawSky(g, G, u, E, rot) {
+  const d = G.d;
+  if (u < 11.2) drawBG(g, G, u, E);
+  if (u < 14) {
+    if (galaxy()) { setPO(G, u, rot); ENT.sky.drawGalaxy(g, GAL, PO); }
+    else drawOldGL(g, G, u, E);
+  } else if (u < 30 && !GAL) drawOldGL(g, G, u, E);
+  if (u >= 13.3 && u < 30 && GAL) { remBase(G, rot); drawRemnants(g, G, u, E); }
+  // supernova glints
+  if (u > 10.1 && u < 12.1) {
+    let n = 0;
+    for (const s of GLINTS) {
+      const p = 1 - Math.abs(u - s.u) / s.w;
+      if (p <= 0) continue;
+      starAt(G, u, rot, s.f, tmpP);
+      const I = (p * p * s.I) / E;
+      pt(tmpP.x, tmpP.y, 2.6 * d, 16000, I); pt(tmpP.x, tmpP.y, 9 * d, 12000, I * 0.05);
+      if (++n >= 2) break;
+    }
+    flushPts(g, { shape: 'star' });
+  }
+  if (u > 14 && u < 19.2) {
+    // brown dwarfs colliding: one dim red star at a time, on average
+    for (const sp of sparks) {
+      if (u < sp.us || u > sp.us + sp.dur) continue;
+      const a = clamp01((u - sp.us) / 0.05) * clamp01((sp.us + sp.dur - u) / 0.12);
+      const X = GAL ? G.x + sp.x * G.radius : oX(G, sp.x, sp.y), Y = GAL ? G.y + sp.y * G.radius : oY(G, sp.x, sp.y);
+      pt(X, Y, 2.2 * d, 3000, (0.16 * a) / E);
+    }
+    // dead stars colliding: rare white flashes
+    for (const b of BANGS) {
+      const p = 1 - Math.abs(u - b.u) / b.w;
+      if (p <= 0) continue;
+      let x = 0, y = 0;
+      if (GAL) { const r = REM.list[Math.floor(b.f * REM.list.length)]; x = G.x + r.ox * G.radius; y = G.y + r.oy * G.radius; }
+      else { starAt(G, 14.5, rot, b.f, tmpP); x = tmpP.x; y = tmpP.y; }
+      pt(x, y, 2.4 * d, 14000, (p * p * b.I) / E); pt(x, y, 10 * d, 11000, (p * p * b.I * 0.03) / E);
+    }
+    flushPts(g);
+  }
+  // the central black hole's end: a small, fierce core with wide bloom that briefly lights the frame
+  const f = 1 - Math.abs(u - 93) / 0.3;
+  if (f > 0) {
+    // nested gaussians, each a little wider and much fainter, so the glow has no edge anywhere
+    const I = f * f;
+    let S = 7 * d * (0.6 + 0.4 * f), P = 4 * I;
+    for (let k = 0; k < 8; k++) { ptRGB(G.x, G.y, S, 1, 0.96 - 0.01 * k, 0.9 - 0.015 * k, P / E); S *= 2.2; P *= k < 2 ? 0.3 : 0.25; }
+    flushPts(g);
+  }
+}
+
+/* our own canvases */
+let rot = ROT0, glEmptyLast = false, glKey = '';
+const ovP = { x: 0, y: 0 };
+function renderGL(u) {
+  if (gl.isLost) return;
+  const sz = gl.resize(), G = geomFor(sz.w, sz.h, sz.d), key = G.W + 'x' + G.H;
+  if (key !== glKey) { glKey = key; glEmptyLast = false; }
+  const empty = (u >= 30 && u < 92.6) || u >= 93.4;
+  if (!(empty && glEmptyLast)) {
+    const E = expAt(u, rot);
+    gl.begin(frameOpts(u, E));
+    if (!empty) drawSky(gl, G, u, E, rot);
+    gl.end();
+    glEmptyLast = empty;
+  }
+  drawOverlay(G, u);
+}
+function drawOverlay(G, u) {
+  ctx.globalAlpha = 1;
+  ctx.clearRect(0, 0, W, H);
+  overlayTo(ctx, G, u, rot, W / G.W, D, W, H);
+  if (u >= 100 && u < 107) drawMotes(u);
+}
+// the vector layer (stellar black hole rings, the atom marker, the central black hole) onto any 2D context c of size Wc x Hc;
+// G is the light's frame geometry, k converts its pixels to c's, d is c's device px per CSS px
+function overlayTo(c, G, u, rot, k, d, Wc, Hc) {
+  const disc = (x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); };
+  // stellar black holes: hairline rings, barely visible
+  if (u >= 13.6 && u < 30) {
+    const born = clamp01((u - 13.6) / 0.4);
+    c.strokeStyle = `rgba(${BONE},${0.1 * born})`; c.lineWidth = 0.6 * d;
+    c.beginPath();
+    if (GAL) {
+      for (const r of REM.list) {
+        if (r.type !== BH) continue;
+        const p = evolve(r.ox, r.oy, r, u); if (!p) continue;
+        const X = (G.x + p[0] * G.radius) * k, Y = (G.y + p[1] * G.radius) * k;
+        c.moveTo(X + 1.35 * d, Y); c.arc(X, Y, 1.35 * d, 0, TAU);
+      }
+    } else {
+      for (let i = 0; i < (PHONE ? 450 : POOL); i++) {
+        const st = stars[i];
+        if (st.rem !== BH || u < st.ud) continue;
+        const p = place(st, u); if (!p) continue;
+        const X = oX(G, p[0], p[1]) * k, Y = oY(G, p[0], p[1]) * k;
+        c.moveTo(X + 1.35 * d, Y); c.arc(X, Y, 1.35 * d, 0, TAU);
+      }
+    }
+    c.stroke();
+  }
+  // your atom
+  if (u < 20.5) {
+    atomAt(G, u, rot, ovP);
+    const X = ovP.x * k, Y = ovP.y * k, rr = 6 * d;
+    if (X > -rr * 2 && X < Wc + rr * 2 && Y > -rr * 2 && Y < Hc + rr * 2) {
+      c.strokeStyle = `rgba(${EMB},0.7)`; c.lineWidth = d;
+      c.beginPath(); c.arc(X, Y, rr, 0, TAU); c.stroke();
+      c.fillStyle = `rgba(${EMB},0.95)`; disc(X, Y, 1.6 * d);
+    }
+  }
+  // the central black hole: it appears as the starlight goes, and is the only thing left from u = 30
+  const cx = G.x * k, cy = G.y * k, rb = 5.5 * d;
+  if (u < 93 && u >= 13.8) {
+    const vis = u < 14 ? smooth((u - 13.8) / 0.2) : 1, fl = clamp01(1 - Math.abs(u - 93) / 0.3), keep = 1 - smooth(fl);
+    const end = smooth((u - 92.6) / 0.4);
+    if (end > 0) {
+      const gr = c.createRadialGradient(cx, cy, rb, cx, cy, rb * 4);
+      gr.addColorStop(0, `rgba(${FLASH},${0.18 * end * keep})`); gr.addColorStop(1, `rgba(${FLASH},0)`);
+      c.fillStyle = gr; disc(cx, cy, rb * 4);
+    }
+    c.fillStyle = `rgba(0,0,0,${vis * keep})`; disc(cx, cy, rb);
+    c.strokeStyle = `rgba(${BONE},${(0.38 + 0.6 * end) * vis * keep})`; c.lineWidth = d;
+    c.beginPath(); c.arc(cx, cy, rb, 0, TAU); c.stroke();
+  }
+}
+function drawMotes(u) {
+  const d = D, fin = clamp01((u - 100) / 0.6), mt = reduced ? 0 : clk;
+  for (const m of motes) {
+    const a = m.a * fin * clamp01((m.end - u) / 0.8); if (a <= 0) continue;
+    const x = ((((m.x * W + m.vx * mt * d) % W) + W) % W), y = ((((m.y * H + m.vy * mt * d) % H) + H) % H);
+    ctx.fillStyle = `rgba(${BONE},${a})`; ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(d)), Math.max(1, Math.round(d)));
+  }
+}
+function draw(u) { if (gl) renderGL(u); else draw2d(u); }
+
+/* for Act III: this act's sky at time u, into another gfx context's frame (between that caller's begin and end) */
+ENT.descentSky = {
+  draw(g, W2, H2, u) {
+    if (!g || !(W2 > 0) || !(H2 > 0)) return;
+    const sz = g.size, d = sz && sz.w === W2 && sz.d ? sz.d : Math.min(window.devicePixelRatio || 1, 1.5);
+    drawSky(g, geomFor(W2, H2, d), u, expAt(u, ROT0), ROT0);
+  },
+  // the 2D overlay for time u (atom marker, central black hole, stellar black hole rings) onto a Canvas 2D context of W x H device px
+  drawOverlay(c, W2, H2, u) {
+    if (!c || !(W2 > 0) || !(H2 > 0)) return;
+    const cvs = c.canvas, cssW = cvs && cvs.getBoundingClientRect ? cvs.getBoundingClientRect().width : 0;
+    const d = cssW > 0 ? W2 / cssW : Math.min(window.devicePixelRatio || 1, 2);
+    galaxy();
+    const G = geomFor(W2, H2, d);
+    if (GAL && REM) remBase(G, ROT0);
+    c.save(); c.globalAlpha = 1; overlayTo(c, G, u, ROT0, 1, d, W2, H2); c.restore();
+  },
+  // the begin() options this act uses at time u (exposure follows the light that is left)
+  frameOpts(u) { const o = frameOpts(u, expAt(u, ROT0)); return { exposure: o.exposure, bloom: o.bloom, bloomRadius: o.bloomRadius, threshold: o.threshold }; },
+};
+
 /* ---------------- HUD ---------------- */
 const elClock = $('dscClock'), elEra = $('dscEra'), elRatio = $('dscRatio'), elTemp = $('dscTemp'), elStretch = $('dscStretch');
 const elHead = $('dscInvHead'), elPips = $('dscPips'), elList = $('dscInvList'), elLost = $('dscLost'), elProton = $('dscProton');
@@ -385,7 +790,7 @@ function layoutCards() {
   shown.forEach((c) => { c.h = c.el.offsetHeight; });
   let prev = -Infinity;
   for (const c of shown) {
-    let top = (u2s(c.u) + 0.58) * SH;
+    let top = (u2s(c.u) + (window.innerWidth <= 760 ? 0.70 : 0.58)) * SH; // phones: captions cross lower, below the galaxy's centre
     if (top < prev + 24) top = prev + 24;
     c.top = top; prev = top + c.h;
   }
@@ -394,9 +799,9 @@ function layoutCards() {
 function fadeCards(y) {
   // captions dissolve line by line as they slide under the HUD block above them (so a long card stays
   // readable while its top has already gone); on phones they also emerge from a soft edge above the
-  // reserved strip for the .you counter
+  // corner kept free for the film's Play button
   const stageTop = Math.max(0, Math.min(SMAX * SH, y - trackTop));
-  const floor = phoneMQ.matches ? window.innerHeight - 64 : Infinity;
+  const floor = phoneMQ.matches ? window.innerHeight - 54 : Infinity;
   const F = phoneMQ.matches ? 44 : 60;
   for (const c of shown) {
     const rel = c.top - stageTop;
@@ -463,54 +868,26 @@ function setBranch(d) {
 bDecay.addEventListener('click', () => setBranch(true));
 bLast.addEventListener('click', () => setBranch(false));
 
-/* ---------------- auto-descend ---------------- */
-const autoBtns = [$('dscAuto'), $('dscAuto2')];
-let auto = false, autoAcc = 0, autoExpect = 0;
-function setAuto(on) {
-  auto = on; autoAcc = 0; autoExpect = window.scrollY;
-  autoBtns.forEach((b) => { b.textContent = on ? 'Stop' : 'Descend for me'; });
-}
-if (reduced) autoBtns.forEach((b) => { b.hidden = true; });
-else autoBtns.forEach((b) => b.addEventListener('click', () => {
-  if (auto) { setAuto(false); return; }
-  measureTrack();
-  if (window.scrollY >= trackTop + SMAX * SH - 2) return;
-  setAuto(true);
-}));
-const fromAutoBtn = (e) => e.target && e.target.closest && e.target.closest('.dsc-auto');
-const stopAuto = (e) => { if (auto && !fromAutoBtn(e)) setAuto(false); };
-window.addEventListener('wheel', stopAuto, { passive: true });
-window.addEventListener('touchstart', stopAuto, { passive: true });
-window.addEventListener('keydown', (e) => {
-  if (!auto) return;
-  if ((e.key === 'Enter' || e.key === ' ') && fromAutoBtn(e)) return;
-  setAuto(false);
-});
-function autoStep(dt) {
-  const y = window.scrollY, end = trackTop + SMAX * SH;
-  if (y >= end - 1 || Math.abs(y - autoExpect) > SH * 0.5) { setAuto(false); return; }
-  let v = 0.16 * SH;
-  if (y < trackTop - 2) v = Math.min(3 * SH, Math.max(v, (trackTop - y) * 2.2)); // glide down to the start
-  autoAcc += v * Math.min(dt, 0.1);
-  let step = Math.floor(autoAcc);
-  if (step < 1) return;
-  if (y + step > end) step = Math.max(1, Math.ceil(end - y));
-  autoAcc -= step;
-  window.scrollBy(0, step);
-  autoExpect = y + step;
-}
-
 /* ---------------- frame loop ---------------- */
-let lastU = NaN, lastY = NaN, dirty = true;
+let lastU = NaN, lastY = NaN, dirty = true, tickAcc = 0, wasLost = false;
 ENT.watch(track);
 ENT.onFrame((dt) => {
-  if (auto) autoStep(dt);
   if (!ENT.isVisible(track)) return;
-  clk += Math.min(dt, 0.1);
+  dt = Math.min(dt, 0.1);
+  clk += dt;
   const y = window.scrollY;
   const u = s2u(Math.max(0, Math.min(SMAX, (y - trackTop) / SH)));
-  const moving = !reduced && (u < 14 || (u >= 100 && u < 107));
-  if (u !== lastU || dirty || moving) { draw(u); dirty = false; }
+  let tick = false;
+  if (gl) {
+    const lost = gl.isLost;
+    if (wasLost && !lost) dirty = true, glEmptyLast = false;
+    wasLost = lost;
+    // gentle life, at most 30 redraws a second: the disk turns until it has relaxed; the motes drift
+    const turning = !reduced && GAL && u < 11, drifting = !reduced && u >= 100 && u < 107;
+    if (turning) rot += (dt * TAU / 240) * (1 - relaxAt(u));
+    if (turning || drifting) { tickAcc += dt; if (tickAcc >= 1 / 30) { tickAcc = 0; tick = true; } }
+  } else tick = !reduced && (u < 14 || (u >= 100 && u < 107));
+  if (u !== lastU || dirty || tick) { draw(u); dirty = false; }
   if (u !== lastU) { hud(u); lastU = u; }
   if (y !== lastY) { fadeCards(y); lastY = y; }
 });

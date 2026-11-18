@@ -11,7 +11,7 @@
 :root {
   /* One cold, dark world. Heat is the only color: particles, stars and accents use blackbody hues. */
   /* Layout: a reading column with instruments set wide beneath it; each section is marked by the equation it demonstrates. */
-  --void: #07080c;
+  --void: #050609;
   --panel: #0d0f15;
   --line: #242836;
   --bone: #ebe5d9;
@@ -174,20 +174,71 @@ footer a { color: var(--dim); }
 .you .hot { color: var(--ember); }
 @media (max-width: 520px) { .you { left: 8px; right: 8px; bottom: 8px; max-width: none; font-size: 11px; padding: 6px 10px; } .you .long { display: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* ---------- film shell ---------- */
+#film[hidden], #notes[hidden] { display: none; }
+body:not(.is-notes) { padding-bottom: 0; }
+body:not(.is-notes) .you { display: none; }
+.film-title { min-height: 100vh; min-height: 100svh; display: flex; align-items: flex-end; padding: 0 0 14vh; }
+.film-title .wrap { width: 100%; }
+.film-h1 { font-family: var(--display); font-style: italic; font-weight: 300; font-size: clamp(54px, 11vw, 148px); line-height: 0.95; letter-spacing: -0.025em; margin: 0 0 26px; font-variation-settings: "opsz" 72; }
+.film-lead { font-size: clamp(21px, 2.6vw, 30px); line-height: 1.3; max-width: 26ch; margin: 0 0 30px; text-wrap: balance; }
+.film-title .controls { margin: 0 0 26px; }
+.film-title button { padding: 12px 26px; font-size: 15px; }
+.film-or { font-size: 14px; }
+.film-play { position: fixed; right: 14px; bottom: 14px; z-index: 6; background: rgba(7, 8, 12, 0.82); font-size: 12px; padding: 8px 12px; min-width: 64px; }
+.film-play[aria-pressed="true"] { background: rgba(7, 8, 12, 0.82); color: var(--ember); border-color: var(--ember); }
+body.is-notes .film-play, body.no-autoplay .film-play, body.no-autoplay #filmStart, body.no-autoplay .film-or { display: none; }
+.notes-back { margin: 28px 0 0; }
+.notes-back a { color: var(--dim); text-decoration: none; }
+.notes-back a:hover { color: var(--ember); }
+/* interstitial cards between acts */
+.film-card { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; }
+.film-card .wrap { width: 100%; }
+.film-card .film-act { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ember); margin: 0 0 18px; }
+.film-card h2 { font-style: italic; font-weight: 300; font-size: clamp(44px, 8vw, 104px); line-height: 1; margin: 0 0 22px; }
+.film-card p.film-line { font-size: clamp(19px, 2.2vw, 24px); line-height: 1.4; max-width: 30ch; margin: 0; color: var(--bone); text-wrap: balance; }
+body.at-title .film-play { opacity: 0; pointer-events: none; }
+.film-play { transition: opacity .3s; }
 /*@inventory.css*/
 /*@ledger.css*/
 /*@after.css*/
+/*@wait.css*/
 /*@descent.css*/
 </style>
 </head>
 <body>
 
+<!-- ================= THE FILM ================= -->
+<div id="film">
+
+<section class="film-title" id="top">
+  <div class="wrap">
+    <p class="kicker">A timeline of the deep future</p>
+    <h1 class="film-h1">Entropy,<br>Run Backward</h1>
+    <p class="film-lead">Everything there is, what becomes of it, and what might come after.</p>
+    <div class="controls"><button id="filmStart" class="primary" type="button">Play</button><span class="note film-or">or scroll. About six minutes.</span></div>
+    <p class="note"><a href="#notes">Notes and sources</a></p>
+  </div>
+</section>
+
+<!--@inventory.html-->
+
+<!--@descent.html-->
+
+<!--@wait.html-->
+
+</div><!-- /#film -->
+<button id="filmPlay" class="film-play" type="button" aria-pressed="false">Play</button>
+
+<!-- ================= NOTES: the mechanism and the sources ================= -->
+<div id="notes" hidden>
 <div class="wrap">
+<p class="kicker notes-back"><a href="#top">← Back to the film</a></p>
 
 <!-- ================= HERO / EXPERIMENT 1 ================= -->
 <header class="hero">
   <div>
-    <p class="kicker">The second law of thermodynamics, from a box of gas to the end of time</p>
+    <p class="kicker">Notes · the mechanism behind the film</p>
     <h1 class="boltz" aria-label="S equals k log W">S<span class="op">=</span><span class="k">k</span> log W</h1>
     <p class="grave">Carved on Ludwig Boltzmann's grave in Vienna. S is entropy. W counts the microscopic arrangements that look identical from outside. The constant k converts that count into joules per kelvin. Boltzmann died in 1906, a few years before experiments settled that the atoms his formula counts are real.</p>
 
@@ -196,7 +247,6 @@ footer a { color: var(--dim); }
     <div class="prose">
       <p>These 360 particles start packed into one corner. The rules they follow run the same forward and backward, and no force drives them outward. They spread because there are incomparably more ways to be spread out than to stay in the corner, and their motion wanders through arrangements without preference. It ends up where almost all the arrangements are.</p>
       <p>Watch the energy and the work. The energy never changes. The work it could do drains away.</p>
-      <p class="note">Four short experiments come first, then the universe. <a href="#inventory">Skip to the universe</a>.</p>
     </div>
   </div>
 
@@ -344,19 +394,7 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
-</div><!-- /.wrap -->
-
-<!--@inventory.html-->
-
-<div class="wrap">
-
 <!--@ledger.html-->
-
-</div><!-- /.wrap -->
-
-<!--@descent.html-->
-
-<div class="wrap">
 
 <!--@after.html-->
 
@@ -370,8 +408,6 @@ footer a { color: var(--dim); }
   </div>
 </section>
 
-<!--@after_end.html-->
-
 <footer>
   <p>Built after Daniel Temkin's <a href="https://entropy-lang.org/">Entropy</a> (2010), a programming language in which data decays as it is used. The gas uses bit-reversible molecular dynamics after Levesque &amp; Verlet (1993): soft disks, integer positions, forces rounded pair by pair so every step can be undone exactly.</p>
   <p>Entropy budget: Egan &amp; Lineweaver, <a href="https://arxiv.org/abs/0909.3983">“A Larger Estimate of the Entropy of the Universe”</a> (2010). Far-future eras, brown-dwarf collisions, galactic evaporation and the 400-watt white dwarf: Adams &amp; Laughlin, <a href="https://arxiv.org/abs/astro-ph/9701131">“A Dying Universe”</a> (1997). The vanishing of other galaxies: Krauss &amp; Scherrer (2007). Milky Way and Andromeda odds: Sawala et al. (2025). Scale of the universe: Voyager 1's distance from NASA; Laniakea from Tully et al. (2014); galaxy counts from Conselice et al. (2016), whose two trillion is an upper estimate. Whether thought can last forever: Dyson, “Time Without End” (1979), and Krauss &amp; Starkman, <a href="https://arxiv.org/abs/astro-ph/9902189">“Life, the Universe, and Nothing”</a> (1999). Iron stars: Dyson (1979). A new beginning from empty space: Carroll &amp; Chen (2004). Recurrence: Dyson, Kleban &amp; Susskind (2002). The case against fluctuations in empty space: Boddy, Carroll &amp; Pollack (2014). Landauer (1961).</p>
@@ -380,6 +416,7 @@ footer a { color: var(--dim); }
 </footer>
 
 </div>
+</div><!-- /#notes -->
 
 <div class="you" id="you" title="Estimate: ~100 W resting metabolism released as heat into a 20 °C room">You, so far: <b id="y-e">0 kJ</b><span class="long"> turned to heat</span> · <span class="hot">+<span id="y-s">0</span> J/K<span class="long"> of entropy</span></span> · <span id="y-b">0 bits</span></div>
 
@@ -956,6 +993,46 @@ const photons = (() => {
   upd(); setInterval(upd, 1000);
 })();
 
+/* ================= FILM: views and autoplay ================= */
+(() => {
+  const film = $('film'), notes = $('notes'), btn = $('filmPlay'), startBtn = $('filmStart');
+  const RATE = 0.16; // screens per second
+  let filmY = 0, on = false, expect = 0;
+  if (reduced) document.body.classList.add('no-autoplay');
+  function setOn(v) {
+    on = !!v && !reduced && notes.hidden;
+    btn.textContent = on ? 'Pause' : 'Play'; btn.setAttribute('aria-pressed', String(on));
+    if (on) expect = window.scrollY;
+  }
+  function view() {
+    const n = location.hash === '#notes';
+    if (n === !notes.hidden) return;
+    if (n) { filmY = window.scrollY; setOn(false); }
+    film.hidden = n; notes.hidden = !n; document.body.classList.toggle('is-notes', n);
+    window.scrollTo(0, n ? 0 : filmY);
+    window.dispatchEvent(new Event('resize'));
+  }
+  window.addEventListener('hashchange', view);
+  if (location.hash === '#notes') view();
+  btn.addEventListener('click', () => setOn(!on));
+  startBtn.addEventListener('click', () => setOn(true));
+  const userStop = (e) => { if (on && !(e.target && e.target.closest && e.target.closest('#filmPlay, #filmStart'))) setOn(false); };
+  window.addEventListener('wheel', userStop, { passive: true });
+  window.addEventListener('touchstart', userStop, { passive: true });
+  window.addEventListener('keydown', (e) => { if (e.key !== 'Tab' && e.key !== 'Enter' && e.key !== ' ') userStop(e); else if (document.activeElement !== btn && document.activeElement !== startBtn) userStop(e); });
+  let atTitle = null;
+  frameHooks.push(() => { const t = window.scrollY < window.innerHeight * 0.5; if (t !== atTitle) { atTitle = t; document.body.classList.toggle('at-title', t); } });
+  frameHooks.push((dt) => {
+    if (!on) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    if (Math.abs(window.scrollY - expect) > window.innerHeight * 0.6) { setOn(false); return; } // something else moved the page
+    expect = Math.min(max, expect + RATE * window.innerHeight * Math.min(dt, 0.05));
+    window.scrollTo(0, expect);
+    if (expect >= max - 1) setOn(false);
+  });
+  window.ENT.autoplay = { get on() { return on; }, start: () => setOn(true), stop: () => setOn(false), rate: RATE };
+})();
+
 /* ================= LOOP ================= */
 let last = performance.now();
 function loop(now) {
@@ -969,6 +1046,12 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 })();
 </script>
 <script>
+//@gfx.js
+</script>
+<script>
+//@sky.js
+</script>
+<script>
 //@inventory.js
 </script>
 <script>
@@ -976,6 +1059,9 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 </script>
 <script>
 //@descent.js
+</script>
+<script>
+//@wait.js
 </script>
 <script>
 //@after.js

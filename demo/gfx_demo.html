@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gfx demo</title>
+<style>
+  html, body { margin: 0; background: #050609; color: #c9c4b8; }
+  body { font: 12px/1.5 "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; overflow-x: hidden; }
+  .scene { margin: 0 0 56px; }
+  .scene canvas { display: block; width: 100%; height: 74vh; min-height: 420px; background: #050609; }
+  #c3 { touch-action: none; cursor: crosshair; }
+  .cap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 16px 4px; }
+  .cap span:first-child { color: #c9c4b8; }
+  .cap .ms { color: #7d7a72; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ctl { display: flex; flex-wrap: wrap; gap: 0 24px; padding: 0 16px; color: #7d7a72; }
+  .ctl label { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .ctl input[type=range] { width: 170px; accent-color: #c9c4b8; }
+  .ctl output { width: 3.5em; color: #c9c4b8; font-variant-numeric: tabular-nums; }
+  .fb { padding: 40px 16px; color: #7d7a72; }
+</style>
+</head>
+<body>
+
+<section class="scene" id="s1">
+  <canvas id="c1" aria-label="A barred spiral galaxy, tilted about 60 degrees"></canvas>
+  <div class="cap"><span>01 spiral galaxy, <b id="n1"></b> points</span><span class="ms" id="ms1"></span></div>
+  <div class="ctl">
+    <label for="exp1">Exposure <input id="exp1" type="range" min="0.2" max="4" step="0.01" value="1"><output id="exp1o">1.00</output></label>
+    <label for="alive1">Stars alive <input id="alive1" type="range" min="0" max="1" step="0.001" value="1"><output id="alive1o">1.00</output></label>
+    <label for="relax1">Relax <input id="relax1" type="range" min="0" max="1" step="0.001" value="0"><output id="relax1o">0.00</output></label>
+  </div>
+</section>
+
+<section class="scene" id="s2">
+  <canvas id="c2" aria-label="The cosmic web: filaments, walls and voids"></canvas>
+  <div class="cap"><span>02 cosmic web, <b id="n2"></b> points</span><span class="ms" id="ms2"></span></div>
+  <div class="ctl">
+    <label for="zoom2">Zoom <input id="zoom2" type="range" min="1" max="6" step="0.01" value="1"><output id="zoom2o">1.00</output></label>
+  </div>
+</section>
+
+<section class="scene" id="s3">
+  <canvas id="c3" aria-label="A black hole lensing a star field and a galaxy. Drag to move it."></canvas>
+  <div class="cap"><span>03 lensed black hole, drag to move</span><span class="ms" id="ms3"></span></div>
+  <div class="ctl">
+    <label for="mass3">Mass <input id="mass3" type="range" min="0" max="1" step="0.001" value="0.45"><output id="mass3o">0.45</output></label>
+  </div>
+</section>
+
+<script>
+/* tiny stand-in for the page's window.ENT */
+(() => {
+  'use strict';
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function blackbody(T) { // Tanner Helland approximation, T in kelvin
+    const t = T / 100; let r, g, b;
+    if (t <= 66) { r = 255; g = 99.4708025861 * Math.log(t) - 161.1195681661; b = t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307; }
+    else { r = 329.698727446 * Math.pow(t - 60, -0.1332047592); g = 288.1221695283 * Math.pow(t - 60, -0.0755148492); b = 255; }
+    const cl = (v) => Math.max(0, Math.min(255, Math.round(v)));
+    return [cl(r), cl(g), cl(b)];
+  }
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hooks = [], visible = new Map();
+  const io = new IntersectionObserver((es) => es.forEach((e) => visible.set(e.target, e.isIntersecting)), { rootMargin: '80px' });
+  let last = performance.now();
+  function loop(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; for (const f of hooks) f(dt); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+  window.ENT = {
+    $: (id) => document.getElementById(id), reduced, mulberry32, blackbody,
+    onFrame: (f) => hooks.push(f), onResize: (f) => { let t = 0; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(f, 120); }); },
+    watch: (el) => { visible.set(el, true); io.observe(el); }, isVisible: (el) => visible.get(el) !== false,
+  };
+})();
+</script>
+<script src="../src/gfx.js"></script>
+<script src="../src/sky.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, mulberry32, blackbody, reduced } = ENT;
+const TAU = Math.PI * 2;
+const phone = Math.min(window.innerWidth, screen.width || 1e9) <= 480;
+
+/* blackbody -> linear rgb, normalised so the brightest channel is 1 (look-up over 800 K .. 40 000 K, log spaced) */
+const LUT_N = 512, T0 = 800, T1 = 40000, LUT = new Float32Array(LUT_N * 3);
+for (let i = 0; i < LUT_N; i++) {
+  const c = blackbody(T0 * Math.pow(T1 / T0, i / (LUT_N - 1))).map((v) => Math.pow(v / 255, 2.2));
+  const m = Math.max(c[0], c[1], c[2], 1e-6);
+  LUT[i * 3] = c[0] / m; LUT[i * 3 + 1] = c[1] / m; LUT[i * 3 + 2] = c[2] / m;
+}
+const lutIdx = (T) => Math.max(0, Math.min(LUT_N - 1, Math.round(Math.log(T / T0) / Math.log(T1 / T0) * (LUT_N - 1)))) * 3;
+
+/* shared scene plumbing: one gfx per canvas, render only when visible and when something changed or moves */
+const scenes = [];
+function scene(id, msId, setup) {
+  const cv = $(id), g = ENT.gfx.create(cv, { maxDpr: 1.5 });
+  if (!g) { cv.insertAdjacentHTML('afterend', '<p class="fb">WebGL2 is not available here. The page would draw this sky with Canvas 2D.</p>'); return null; }
+  const s = { cv, g, ms: $(msId), dirty: true, anim: false, acc: 0, cpu: 0, last: 0, shown: 0, sz: null };
+  Object.assign(s, setup(s));
+  ENT.watch(cv);
+  scenes.push(s);
+  return s;
+}
+ENT.onFrame((dt) => {
+  for (const s of scenes) {
+    if (!ENT.isVisible(s.cv)) continue;
+    if (s.g.isLost) continue;
+    if (s.anim && !reduced) s.dirty = true;
+    if (!s.dirty) continue;
+    const t0 = performance.now();
+    const sz = s.g.resize();
+    if (!s.sz || s.sz.w !== s.lw || s.sz.h !== s.lh) { s.lw = sz.w; s.lh = sz.h; s.sz = sz; s.layout && s.layout(sz); }
+    s.render(dt, sz);
+    s.dirty = false;
+    const t1 = performance.now();
+    // frame interval while animating (includes GPU back-pressure), otherwise the CPU time of the one frame drawn
+    const iv = s.anim && !reduced && s.last && t1 - s.last < 1000 ? t1 - s.last : t1 - t0;
+    s.last = t1; s.acc = s.acc ? s.acc * 0.9 + iv * 0.1 : iv; s.cpu = s.cpu ? s.cpu * 0.9 + (t1 - t0) * 0.1 : t1 - t0;
+    if (t1 - s.shown > 500 || !s.shown) {
+      const st = s.g.stats;
+      s.ms.textContent = `${s.acc.toFixed(1)} ms/frame · cpu ${s.cpu.toFixed(1)} · ${st.draws} draws · ${(st.bytes / 1048576).toFixed(2)} MB${s.g.hdr ? '' : ' · 8-bit'}`;
+      s.shown = t1;
+    }
+  }
+});
+ENT.onResize(() => scenes.forEach((s) => { s.dirty = true; }));
+
+/* ============================================================== 1. spiral galaxy (model and recipe live in src/sky.js) */
+const GAL = ENT.sky.galaxy({ seed: 2026, count: phone ? 25000 : 60000 });
+// demo-only foreground: stars of our own galaxy (screen space), a few with spikes, and distant galaxies. They age with "Stars alive" too.
+const FG = (() => {
+  const rnd = mulberry32(99), logU = (a, b) => a * Math.pow(b / a, rnd());
+  const nF = phone ? 130 : 240, nS = 4, nBG = phone ? 10 : 18;
+  const mk = (n, per) => ({ n, U: new Float32Array(n * 2), SZ: new Float32Array(n), T: new Float32Array(n), L: new Float32Array(n), ang: new Float32Array(n), sq: new Float32Array(n), out: new Float32Array(n * per) });
+  const F = mk(nF, 7), P = mk(nS, 7), B = mk(nBG, 9);
+  for (let i = 0; i < nF; i++) { F.U[i * 2] = rnd(); F.U[i * 2 + 1] = rnd(); F.SZ[i] = 1.6 + rnd() * 0.6; F.T[i] = logU(3200, 12000); F.L[i] = 0.025 + Math.pow(rnd(), 6) * 0.7; }
+  for (let i = 0; i < nS; i++) { P.U[i * 2] = 0.06 + rnd() * 0.88; P.U[i * 2 + 1] = 0.06 + rnd() * 0.88; P.SZ[i] = 3.6 + rnd() * 2; P.T[i] = logU(4500, 11000); P.L[i] = 1.0 + rnd() * 1.2; }
+  for (let i = 0; i < nBG; i++) { B.U[i * 2] = rnd(); B.U[i * 2 + 1] = rnd(); B.SZ[i] = 5 + rnd() * 9; B.T[i] = logU(4200, 7000); B.L[i] = 0.03 + rnd() * 0.06; B.ang[i] = rnd() * Math.PI; B.sq[i] = 0.25 + rnd() * 0.7; }
+  return { F, P, B };
+})();
+
+const S1 = scene('c1', 'ms1', (s) => {
+  $('n1').textContent = GAL.count.toLocaleString('en-US');
+  let rot = 0.6, expAdapt = 1, alive = 1, relax = 0, expUser = 1, d = 1, lum = 1;
+  const O = { x: 0, y: 0, radius: 1, tilt: 60 * Math.PI / 180, pa: -0.32, rot: 0, alive: 1, relax: 0, alpha: 1, detail: 1 };
+  const bind = (id, fn) => $(id).addEventListener('input', (e) => { fn(+e.target.value); $(id + 'o').textContent = (+e.target.value).toFixed(2); s.dirty = true; });
+  bind('exp1', (v) => { expUser = v; });
+  bind('alive1', (v) => { alive = v; });
+  bind('relax1', (v) => { relax = v; });
+  let fgAlive = -1;
+  function fgColours() {   // same ageing rule as the galaxy: fade by temperature rank, then redden
+    const band = 0.05, cut = alive * (1 + band), shift = 0.42 + 0.58 * alive;
+    for (const [ps, per] of [[FG.F, 7], [FG.P, 7], [FG.B, 9]]) for (let i = 0; i < ps.n; i++) {
+      const f = Math.max(0, Math.min(1, (cut - GAL.rankOf(ps.T[i])) / band)), j = lutIdx(alive >= 1 ? ps.T[i] : ps.T[i] * shift), q = i * per;
+      ps.out[q + 3] = LUT[j]; ps.out[q + 4] = LUT[j + 1]; ps.out[q + 5] = LUT[j + 2]; ps.out[q + 6] = ps.L[i] * f;
+    }
+    fgAlive = alive;
+  }
+  return {
+    anim: true,
+    layout(sz) {
+      d = sz.d; O.x = sz.w * 0.5; O.y = sz.h * 0.5;
+      O.pa = sz.w / sz.h < 0.85 ? -1.22 : -0.32;
+      const ci = Math.cos(O.tilt), c = Math.cos(O.pa), sn = Math.sin(O.pa), hx = Math.hypot(c, ci * sn), hy = Math.hypot(sn, ci * c);
+      O.radius = Math.min(sz.w * 0.47 / hx, sz.h * 0.46 / hy);
+      for (const [ps, per] of [[FG.F, 7], [FG.P, 7], [FG.B, 9]]) for (let i = 0; i < ps.n; i++) {
+        const q = i * per; ps.out[q] = ps.U[i * 2] * sz.w; ps.out[q + 1] = ps.U[i * 2 + 1] * sz.h; ps.out[q + 2] = ps.SZ[i] * d;
+        if (per === 9) { ps.out[q + 7] = ps.ang[i]; ps.out[q + 8] = ps.sq[i]; }
+      }
+    },
+    render(dt) {
+      if (!reduced) rot += dt * TAU / 240;
+      if (fgAlive !== alive) fgColours();
+      // exposure follows the light that is left, so the last embers stay visible
+      const want = Math.min(60, Math.pow(1 / Math.max(lum, 1e-6), 0.8));
+      expAdapt += (want - expAdapt) * (reduced ? 1 : Math.min(1, dt * 3));
+      if (Math.abs(want - expAdapt) > 1e-3 * want) s.dirty = true;
+      O.rot = rot; O.alive = alive; O.relax = relax;
+      const g = s.g;
+      g.begin({ exposure: expUser * expAdapt, bloom: 0.85, bloomRadius: 1.0, threshold: 0.75 });
+      g.smudges(FG.B.out, FG.B.n);
+      g.points(FG.F.out, FG.F.n);
+      lum = ENT.sky.drawGalaxy(g, GAL, O).luminosity;
+      g.points(FG.P.out, FG.P.n, { shape: 'star' });
+      g.end();
+    },
+  };
+});
+
+/* ============================================================== 2. cosmic web (model in src/sky.js) */
+const WEB = ENT.sky.web({ seed: 7, count: phone ? 35000 : 90000 });
+const S2 = scene('c2', 'ms2', (s) => {
+  $('n2').textContent = WEB.count.toLocaleString('en-US');
+  const O = { x: 0, y: 0, radius: 1, zoom: 1, alpha: 1, rim: 1, detail: 1, rot: 0.4 };
+  $('zoom2').addEventListener('input', (e) => { O.zoom = +e.target.value; $('zoom2o').textContent = O.zoom.toFixed(2); s.dirty = true; });
+  return {
+    anim: true,
+    layout(sz) { O.x = sz.w / 2; O.y = sz.h / 2; O.radius = Math.min(sz.w, sz.h) * 0.44; },
+    render(dt) {
+      if (!reduced) O.rot += dt * TAU / 600;
+      const g = s.g;
+      g.begin({ exposure: 1.1, bloom: 0.7, bloomRadius: 1.2, threshold: 0.6 });
+      ENT.sky.drawWeb(g, WEB, O);
+      g.end();
+    },
+  };
+});
+
+/* ============================================================== 3. lensed black hole */
+const S3 = scene('c3', 'ms3', (s) => {
+  const NS = 8000, rnd = mulberry32(4242), logU = (a, b) => a * Math.pow(b / a, rnd());
+  const U = new Float32Array(NS * 2), stars = new Float32Array(NS * 7), SP = new Float32Array(NS);
+  for (let i = 0; i < NS; i++) {
+    U[i * 2] = rnd(); U[i * 2 + 1] = rnd(); SP[i] = 1.4 + rnd() * 0.8;
+    const j = lutIdx(logU(2800, 16000)), q = i * 7;
+    stars[q + 3] = LUT[j]; stars[q + 4] = LUT[j + 1]; stars[q + 5] = LUT[j + 2]; stars[q + 6] = 0.03 + Math.pow(rnd(), 9) * 2.2;
+  }
+  const NB = 6, bright = new Float32Array(NB * 7), UB = [];
+  for (let i = 0; i < NB; i++) { const j = lutIdx(logU(4000, 12000)), q = i * 7; UB.push([0.05 + rnd() * 0.9, 0.05 + rnd() * 0.9, 3.5 + rnd() * 2.5]); bright[q + 3] = LUT[j]; bright[q + 4] = LUT[j + 1]; bright[q + 5] = LUT[j + 2]; bright[q + 6] = 1.2 + rnd() * 1.5; }
+  // one galaxy behind the hole: disk, bulge, nucleus (smudges sharing an axis), and a few faint ones farther off
+  const GX = 0.54, GY = 0.44, GA = 0.6, GQ = 0.42;
+  const GL = [[0.34, 7200, 0.22, GQ], [0.2, 6200, 0.4, GQ * 1.1], [0.09, 5000, 1.0, GQ * 1.5], [0.03, 4600, 3.0, 0.8]];
+  const gal = new Float32Array((GL.length + 8) * 9), UG = [];
+  GL.forEach((m, i) => { const j = lutIdx(m[1]), q = i * 9; gal[q + 3] = LUT[j]; gal[q + 4] = LUT[j + 1]; gal[q + 5] = LUT[j + 2]; gal[q + 6] = m[2]; gal[q + 7] = GA; gal[q + 8] = m[3]; });
+  for (let i = 0; i < 8; i++) { const j = lutIdx(logU(4200, 7000)), q = (GL.length + i) * 9; UG.push([rnd(), rnd(), 6 + rnd() * 10]); gal[q + 3] = LUT[j]; gal[q + 4] = LUT[j + 1]; gal[q + 5] = LUT[j + 2]; gal[q + 6] = 0.06 + rnd() * 0.08; gal[q + 7] = rnd() * Math.PI; gal[q + 8] = 0.3 + rnd() * 0.6; }
+  let hx = null, hy = null, mass = 0.45, d = 1, W = 1, H = 1, M = 1;
+  const cv = s.cv;
+  $('mass3').addEventListener('input', (e) => { mass = +e.target.value; $('mass3o').textContent = mass.toFixed(2); s.dirty = true; });
+  let drag = false;
+  const toHole = (e) => { const r = cv.getBoundingClientRect(); hx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); hy = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)); s.dirty = true; };
+  cv.addEventListener('pointerdown', (e) => { drag = true; cv.setPointerCapture(e.pointerId); toHole(e); });
+  cv.addEventListener('pointermove', (e) => { if (drag) toHole(e); });
+  cv.addEventListener('pointerup', () => { drag = false; });
+  cv.addEventListener('pointercancel', () => { drag = false; });
+  cv.tabIndex = 0;
+  cv.addEventListener('keydown', (e) => {   // arrow keys move the hole too
+    const k = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!k) return; e.preventDefault(); hx = Math.max(0, Math.min(1, hx + k[0] * 0.02)); hy = Math.max(0, Math.min(1, hy + k[1] * 0.02)); s.dirty = true;
+  });
+  return {
+    anim: false,
+    layout(sz) {
+      d = sz.d; W = sz.w; H = sz.h; M = Math.min(W, H);
+      if (hx === null) { hx = GX - 0.13 * M / W; hy = GY + 0.07 * M / H; }
+      for (let i = 0; i < NS; i++) { const q = i * 7; stars[q] = U[i * 2] * W; stars[q + 1] = U[i * 2 + 1] * H; stars[q + 2] = SP[i] * d; }
+      for (let i = 0; i < NB; i++) { const q = i * 7; bright[q] = UB[i][0] * W; bright[q + 1] = UB[i][1] * H; bright[q + 2] = UB[i][2] * d; }
+      GL.forEach((m, i) => { const q = i * 9; gal[q] = GX * W; gal[q + 1] = GY * H; gal[q + 2] = m[0] * M; });
+      UG.forEach((u, i) => { const q = (GL.length + i) * 9; gal[q] = u[0] * W; gal[q + 1] = u[1] * H; gal[q + 2] = u[2] * d; });
+    },
+    render() {
+      const g = s.g, shadow = (5 + 38 * mass) * d * Math.max(1, M / d / 600);
+      g.begin({ exposure: 1.0, bloom: 0.8, bloomRadius: 1.0, threshold: 0.7 });
+      g.smudges(gal, GL.length + 8);
+      g.points(stars, NS);
+      g.points(bright, NB, { shape: 'star' });
+      g.lens({ x: hx * W, y: hy * H, shadow, ring: shadow * 2.6 });
+      g.end();
+    },
+  };
+});
+
+window.__gfxDemo = { scenes };
+})();
+</script>
+</body>
+</html>
